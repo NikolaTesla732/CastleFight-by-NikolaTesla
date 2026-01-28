@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "custom_castlefight",
+  "version": "${version}",
+  "name": "Custom_CastleFight",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/custom_castlefight/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.custom.castlefight.custom_castlefight.client.Custom_castlefightDataGenerator"
+    ],
+    "client": [
+      "com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient"
+    ],
+    "main": [
+      "com.custom.castlefight.custom_castlefight.Custom_castlefight"
+    ]
+  },
+  "mixins": [
+    "custom_castlefight.mixins.json",
+    {
+      "config": "custom_castlefight.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

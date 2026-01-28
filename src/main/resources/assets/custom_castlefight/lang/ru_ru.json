@@ -1,0 +1,10 @@
+{
+  "category.custom_castlefight": "CastleFight",
+  "category.custom_castlefight.shop_key": "CastleFight — Управление магазином",
+  "key.custom_castlefight.open_shop": "Открыть магазин",
+
+  "block.custom_castlefight.scanblock" : "Сканер",
+  "item.custom_castlefight.scanblock": "Сканер",
+  "block.custom_castlefight.buildblock" : "Строитель",
+  "item.custom_castlefight.buildblock" : "Строитель"
+}
