@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,7 +20,9 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -63,12 +66,23 @@ public class ScanBlock extends Block {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!world. isClient()) {
             player.openHandledScreen(
-                    new ExtendedScreenHandlerFactory(
+                    new ExtendedScreenHandlerFactory<BlockPos>(){
+                        @Override
+                        public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+                            return new ScanScreen(syncId,playerInventory,pos);
+                        }
 
-                            ScanScreen::new,
-                            Text.literal("Сканер")
-                    ) {
+                        @Override
+                        public Text getDisplayName() {
+                            return Text.translatable("Привет");
+                        }
+
+                        @Override
+                        public BlockPos getScreenOpeningData(ServerPlayerEntity player){
+                            return pos;
+                        }
                     }
+
             );
         }
         return super.onUse(state, world, pos, player, hit);

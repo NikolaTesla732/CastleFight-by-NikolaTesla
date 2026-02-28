@@ -7,10 +7,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldEvents;
 
+
 import java.util.*;
+
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class BuildFunc {
     public static boolean NeedBlocks(int need ,List<List<Pair<BlockState, BlockPos>>> ListBlocks){
@@ -103,6 +105,8 @@ public class BuildFunc {
             }
             ans.add(bp);
         }
+        LOGGER.info(ans.get(0).get(0).toString());
+        LOGGER.info("asd");
         return ans;
     }
 }

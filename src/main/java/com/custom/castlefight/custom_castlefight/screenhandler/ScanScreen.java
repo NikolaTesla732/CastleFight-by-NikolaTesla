@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.screenhandler;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
 import com.custom.castlefight.custom_castlefight.Network.Packets.RequestToScanSectionC2SPacket;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -13,38 +14,47 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.util.List;
 
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.SCANSCREEN_TYPE;
 
 public class ScanScreen extends ScreenHandler {
 
 
-    private BlockPos startPos = BlockPos.ORIGIN;
+    private final BlockPos startPos;
+    private final World world;
+    public ScanScreen(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+        this(syncId, playerInventory, buf.readBlockPos());
+    }
 
     public ScanScreen(int syncId,PlayerInventory playerInventory, BlockPos blockPos) {
         super( SCANSCREEN_TYPE,syncId);
-
+        this.startPos = blockPos.add(1,0,1);
+        this.world = playerInventory.player.getEntityWorld();
     }
+    public void OnscanClicked(){
+        LOGGER.info("Entry point detected");
+        if (world instanceof ServerWorld serverWorld){
 
-    public ScanScreen(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
-        this(syncId,playerInventory,buf.readBlockPos());
-    }
-
-    public void setBlockPos(BlockPos pos){
-        this.startPos = pos;
+            LOGGER.info(serverWorld.toString());
+        }
     }
     public BlockPos getBlockPos() {
         return startPos;
     }
-    protected void onScanClicked(PlayerEntity player,int id){
-        if (!player.getEntityWorld().isClient()){
+    @Override
+    public boolean onButtonClick(PlayerEntity player,int id){
+        if (world instanceof ServerWorld serverWorld){
             if (id == 1){
-                List<List<Pair<BlockState,BlockPos>>> p = BuildFunc.scanSection(this.startPos,(ServerWorld) player.getEntityWorld());
+                var BlockList = BuildFunc.scanSection(startPos, serverWorld);
+                BuildFunc.buildSection(serverWorld, BlockList, 2);
+                return true;
             }
         }
-
+        return super.onButtonClick(player,id);
     }
 
 
