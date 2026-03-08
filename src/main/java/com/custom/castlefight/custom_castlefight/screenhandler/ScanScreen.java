@@ -1,22 +1,14 @@
 package com.custom.castlefight.custom_castlefight.screenhandler;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
-import com.custom.castlefight.custom_castlefight.Network.Packets.RequestToScanSectionC2SPacket;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registry;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-
-import java.util.List;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.SCANSCREEN_TYPE;

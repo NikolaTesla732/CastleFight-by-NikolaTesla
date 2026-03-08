@@ -1,5 +1,5 @@
 package com.custom.castlefight.custom_castlefight.CustomFunc;
 
-public class Utils {
+public class SaveFunc extends {
 
 }
