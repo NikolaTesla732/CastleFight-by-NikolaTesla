@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.client;
 
 import com.custom.castlefight.custom_castlefight.Custom_castlefight;
 import com.custom.castlefight.custom_castlefight.Network.CastlefightNetworking;
+import com.custom.castlefight.custom_castlefight.client.bind.AdminKey;
 import com.custom.castlefight.custom_castlefight.client.bind.ShopKey;
 import com.custom.castlefight.custom_castlefight.client.render.Draw;
 import com.custom.castlefight.custom_castlefight.client.screen.ScanHandlerScreen;
@@ -18,6 +19,7 @@ public class Custom_castlefightClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ShopKey.register();
+        AdminKey.register();
         CastlefightNetworking.registerC2SPackets();
         WorldRenderEvents.END_MAIN.register(Draw::SelectBlock);
         HandledScreens.<ScanScreen,ScanHandlerScreen>register(Custom_castlefight.SCANSCREEN_TYPE,

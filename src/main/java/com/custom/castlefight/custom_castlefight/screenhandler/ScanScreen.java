@@ -50,7 +50,7 @@ public class ScanScreen extends ScreenHandler {
         if (world instanceof ServerWorld serverWorld){
             if (id == 1){
                 var BlockList = BuildFunc.scanSection(startPos, serverWorld);
-                BuildFunc.buildSection(serverWorld, BlockList, 2);
+                BuildFunc.buildSection(serverWorld,startPos, BlockList, 2);
                 return true;
             }
         }

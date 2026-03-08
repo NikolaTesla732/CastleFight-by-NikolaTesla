@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.position;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
@@ -45,21 +45,20 @@ public class BuildBlock extends Block {
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        List<List<Pair<BlockState,BlockPos>>> BlocksList = new ArrayList<>();
-        BlockPos np = new BlockPos(pos.getX()-1,pos.getY(),pos.getZ()-1);
+        List<List<Pair<BlockState, position>>> BlocksList = new ArrayList<>();
         for (int y = 0;y <5;y++){
-            List<Pair<BlockState,BlockPos>> blocks = new ArrayList<>();
+            List<Pair<BlockState,position>> blocks = new ArrayList<>();
             for (int x = 0;x <3;x++){
                 for (int z = 0;z <3;z++){
-                    blocks.add(new Pair<>(Blocks.STONE.getDefaultState(),new BlockPos(
-                            np.getX()+x,np.getY()+y,np.getZ()+z
+                    blocks.add(new Pair<>(Blocks.STONE.getDefaultState(),new position(
+                            x,y,z
                     )));
                 }
 
             }
             BlocksList.add(blocks);
         }
-        if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,BlocksList,2);
+        if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,BlocksList,2);
     }
 
     public static void register(){

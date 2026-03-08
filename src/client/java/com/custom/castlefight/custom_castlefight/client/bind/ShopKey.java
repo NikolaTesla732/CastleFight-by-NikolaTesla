@@ -8,7 +8,7 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
-
+//Класс для бинда кнопки открытия магазина
 public class ShopKey {
     public static KeyBinding OPEN_SHOP;
 
@@ -17,7 +17,7 @@ public class ShopKey {
                 "key.castlefight.open_shop",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_R,
-                KeyBinding.Category.create(Identifier.of("castlefight:shop_key"))
+                AllKeyUtils.category
         ));
         ClientTickEvents.END_CLIENT_TICK.register(minecraftClient -> {
             while (OPEN_SHOP.wasPressed()){

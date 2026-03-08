@@ -31,7 +31,7 @@ public record RequestToScanSectionC2SPacket(BlockPos startPos) implements Custom
         ServerPlayNetworking.registerGlobalReceiver(ID,RequestToScanSectionC2SPacket::receive);
     }
 
-    public static List<List<Pair<BlockState,BlockPos>>> receive(RequestToScanSectionC2SPacket payload, ServerPlayNetworking.Context context){
+    public static List<List<Pair<BlockState, BuildFunc.position>>> receive(RequestToScanSectionC2SPacket payload, ServerPlayNetworking.Context context){
         return BuildFunc.scanSection(payload.startPos,context.server().getSpawnWorld());
     }
 

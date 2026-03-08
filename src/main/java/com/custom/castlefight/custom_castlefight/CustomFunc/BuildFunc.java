@@ -15,37 +15,39 @@ import java.util.*;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class BuildFunc {
-    public static boolean NeedBlocks(int need ,List<List<Pair<BlockState, BlockPos>>> ListBlocks){
+    public static boolean NeedBlocks(int need ,List<List<Pair<BlockState, position>>> ListBlocks){
         int cnt = 0;
         for (int i = 0;i < ListBlocks.size();i++){
-            for (Pair<BlockState, BlockPos> j : ListBlocks.get(i)){
+            for (Pair<BlockState, position> j : ListBlocks.get(i)){
                 cnt++;
             }
         }
         return cnt == need;
     }
-    public static void build(ServerWorld world,Pair<BlockState,BlockPos> block){
+    public static void build(ServerWorld world,Pair<BlockState,position> block,BlockPos origin){
         BlockState state = block.getLeft();
-        BlockPos pos = block.getRight();
-        world.setBlockState(pos,state);
+        position pos = block.getRight();
+        world.setBlockState(origin.add(pos.x,pos.y,pos.z),state);
         if (world.isClient())return;
         world.syncWorldEvent(
                 WorldEvents.BLOCK_BROKEN,
-                block.getRight(),
+                origin.add(pos.x,pos.y,pos.z),
                 Block.getRawIdFromState(state)
         );
     }
     private static class BuildTask {
         final ServerWorld world;
-        final Queue<Pair<BlockState, BlockPos>> queue;
+        final Queue<Pair<BlockState, position>> queue;
         final int delayTicks;
         int timer;
+        final BlockPos origin;
 
-        BuildTask(ServerWorld world, Queue<Pair<BlockState, BlockPos>> queue, int delayTicks) {
+        BuildTask(ServerWorld world, Queue<Pair<BlockState, position>> queue, int delayTicks,BlockPos origin) {
             this.world = world;
             this.queue = queue;
             this.delayTicks = delayTicks;
             this.timer = 0;
+            this.origin = origin;
         }
     }
 
@@ -68,39 +70,37 @@ public class BuildFunc {
                 continue;
             }
 
-            Pair<BlockState, BlockPos> block = task.queue.poll();
-            build(task.world, block);
+            Pair<BlockState, position> block = task.queue.poll();
+            build(task.world, block,task.origin);
             task.timer = task.delayTicks;
         }
     }
-
-    public static void buildSection(ServerWorld world,
-                                        List<List<Pair<BlockState, BlockPos>>> ListBlocks,
+    public record position(int x,int y,int z){}
+    public static void buildSection(ServerWorld world,BlockPos origin,
+                                        List<List<Pair<BlockState, position>>> ListBlocks,
                                         int delayTicks) {
 
         if (!NeedBlocks(45, ListBlocks)) {
             return;
         }
 
-        Queue<Pair<BlockState, BlockPos>> queue = new ArrayDeque<>();
-        for (List<Pair<BlockState, BlockPos>> row : ListBlocks) {
-            for (Pair<BlockState, BlockPos> block : row) {
-                queue.add(block);
-            }
+        Queue<Pair<BlockState, position>> queue = new ArrayDeque<>();
+        for (List<Pair<BlockState, position>> row : ListBlocks) {
+            queue.addAll(row);
         }
 
-        TASKS.add(new BuildTask(world, queue, delayTicks));
+        TASKS.add(new BuildTask(world, queue, delayTicks,origin));
     }
 
-    public static List<List<Pair<BlockState,BlockPos>>> scanSection(BlockPos startpos, ServerWorld world){
-        List<List<Pair<BlockState,BlockPos>>> ans = new ArrayList<>();
-        for (int i = 0;i < 5;i++){
-            List<Pair<BlockState,BlockPos>> bp = new ArrayList<>();
-            for (int j = 0;j < 3;j++){
-                for (int k = 0;k < 3;k++){
-                    BlockPos pos2 = startpos.add(j,i,k);
+    public static List<List<Pair<BlockState,position>>> scanSection(BlockPos startpos, ServerWorld world){
+        List<List<Pair<BlockState,position>>> ans = new ArrayList<>();
+        for (int y = 0;y < 5;y++){
+            List<Pair<BlockState,position>> bp = new ArrayList<>();
+            for (int x = 0;x < 3;x++){
+                for (int z = 0;z < 3;z++){
+                    BlockPos pos2 = startpos.add(x,y,z);
                     BlockState block = world.getBlockState(pos2);
-                    bp.add(new Pair<>(block,pos2.add(0,0,3)));
+                    bp.add(new Pair<>(block,new position(x,y,z)));
                 }
             }
             ans.add(bp);
