@@ -3,46 +3,100 @@ package com.custom.castlefight.custom_castlefight.CustomFunc;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryEntryLookup;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldEvents;
 
 
 import java.util.*;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-
 public class BuildFunc {
-    public static boolean NeedBlocks(int need ,List<List<Pair<BlockState, position>>> ListBlocks){
-        int cnt = 0;
-        for (int i = 0;i < ListBlocks.size();i++){
-            for (Pair<BlockState, position> j : ListBlocks.get(i)){
-                cnt++;
-            }
+    public record BlockWithData(int x, int y, int z, BlockState state){}
+    public static class BuildTemplate {
+        private final String id;
+        private final String name;
+        private final List<BlockWithData> blocks;
+        public BuildTemplate(String id, String name,
+                             List<BlockWithData> blocks
+        ){
+            this.id = id;
+            this.blocks = blocks;
+            this.name = name;
         }
-        return cnt == need;
+        public BuildTemplate(NbtCompound data, RegistryWrapper.WrapperLookup lookup){
+            this.id = data.getString("id","");
+            this.name = data.getString("name","");
+            NbtList list = data.getListOrEmpty("blocks");
+            List<BlockWithData> blocks = new ArrayList<>() ;
+            RegistryEntryLookup<Block> blockLookup = lookup.getOrThrow(RegistryKeys.BLOCK);
+            for (int i = 0; i < list.size(); i++) {
+                NbtCompound nbtTime = list.getCompoundOrEmpty(i);
+                int x,y,z;
+                x = nbtTime.getInt("x",0);
+                y = nbtTime.getInt("y",0);
+                z = nbtTime.getInt("z",0);
+                BlockState state = NbtHelper.toBlockState(blockLookup,nbtTime.getCompoundOrEmpty("state"));
+                blocks.add(new BlockWithData(x,y,z,state));
+            }
+            this.blocks = blocks;
+
+        }
+        public String getId() {
+            return id;
+        }
+
+        public List<BlockWithData> getBlocks() {
+            return blocks;
+        }
+
+        public String getName() {
+            return name;
+        }
+        public NbtCompound toNbt(){
+            NbtCompound nbt = new NbtCompound();
+            nbt.putString("id",this.id);
+            nbt.putString("name",this.name);
+
+            NbtList nbtList = new NbtList();
+            for (BlockWithData block : this.blocks){
+                NbtCompound nbtTime = new NbtCompound();
+                nbtTime.putInt("x",block.x());
+                nbtTime.putInt("y",block.y());
+                nbtTime.putInt("z",block.z());
+                nbtTime.put("state", NbtHelper.fromBlockState(block.state));
+                nbtList.add(nbtTime);
+            }
+            nbt.put("blocks",nbtList);
+            return nbt;
+        }
+
     }
-    public static void build(ServerWorld world,Pair<BlockState,position> block,BlockPos origin){
-        BlockState state = block.getLeft();
-        position pos = block.getRight();
-        world.setBlockState(origin.add(pos.x,pos.y,pos.z),state);
+
+    public static void build(ServerWorld world, BlockWithData block, BlockPos origin){
+        BlockState state = block.state;
+        world.setBlockState(origin.add(block.x,block.y,block.z),state);
         if (world.isClient())return;
         world.syncWorldEvent(
                 WorldEvents.BLOCK_BROKEN,
-                origin.add(pos.x,pos.y,pos.z),
+                origin.add(block.x,block.y,block.z),
                 Block.getRawIdFromState(state)
         );
     }
     private static class BuildTask {
         final ServerWorld world;
-        final Queue<Pair<BlockState, position>> queue;
+        final Queue<BlockWithData> queue;
         final int delayTicks;
         int timer;
         final BlockPos origin;
 
-        BuildTask(ServerWorld world, Queue<Pair<BlockState, position>> queue, int delayTicks,BlockPos origin) {
+        BuildTask(ServerWorld world, Queue<BlockWithData> queue, int delayTicks, BlockPos origin) {
             this.world = world;
             this.queue = queue;
             this.delayTicks = delayTicks;
@@ -70,43 +124,34 @@ public class BuildFunc {
                 continue;
             }
 
-            Pair<BlockState, position> block = task.queue.poll();
+            BlockWithData block = task.queue.poll();
             build(task.world, block,task.origin);
             task.timer = task.delayTicks;
         }
     }
-    public record position(int x,int y,int z){}
+
     public static void buildSection(ServerWorld world,BlockPos origin,
-                                        List<List<Pair<BlockState, position>>> ListBlocks,
+                                    List<BlockWithData> ListBlocks,
                                         int delayTicks) {
 
-        if (!NeedBlocks(45, ListBlocks)) {
-            return;
-        }
+        Queue<BlockWithData> queue = new ArrayDeque<>();
+        queue.addAll(ListBlocks);
 
-        Queue<Pair<BlockState, position>> queue = new ArrayDeque<>();
-        for (List<Pair<BlockState, position>> row : ListBlocks) {
-            queue.addAll(row);
-        }
 
         TASKS.add(new BuildTask(world, queue, delayTicks,origin));
     }
 
-    public static List<List<Pair<BlockState,position>>> scanSection(BlockPos startpos, ServerWorld world){
-        List<List<Pair<BlockState,position>>> ans = new ArrayList<>();
+    public static List<BlockWithData> scanSection(BlockPos startpos, ServerWorld world){
+        List<BlockWithData> ans = new ArrayList<>();
         for (int y = 0;y < 5;y++){
-            List<Pair<BlockState,position>> bp = new ArrayList<>();
             for (int x = 0;x < 3;x++){
                 for (int z = 0;z < 3;z++){
                     BlockPos pos2 = startpos.add(x,y,z);
                     BlockState block = world.getBlockState(pos2);
-                    bp.add(new Pair<>(block,new position(x,y,z)));
+                    ans.add(new BlockWithData(x,y,z,block));
                 }
             }
-            ans.add(bp);
         }
-        LOGGER.info(ans.get(0).get(0).toString());
-        LOGGER.info("asd");
         return ans;
     }
 }
