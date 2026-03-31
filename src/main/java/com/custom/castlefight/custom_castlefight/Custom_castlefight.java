@@ -9,7 +9,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +24,7 @@ public class Custom_castlefight implements ModInitializer {
     public void onInitialize() {
         ScanBlock.register();
         BuildBlock.register();
-        CastlefightNetworking.registerS2CPackets();
+        CastlefightNetworking.registerC2SPackets();
         BuildFunc.init();
         SCANSCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,

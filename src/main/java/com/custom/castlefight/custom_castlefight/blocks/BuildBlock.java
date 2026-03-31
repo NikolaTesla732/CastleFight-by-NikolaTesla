@@ -1,6 +1,7 @@
 package com.custom.castlefight.custom_castlefight.blocks;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.BuildItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -44,8 +45,8 @@ public class BuildBlock extends Block {
         super.onPlaced(world, pos, state, placer, itemStack);
         List<BlockWithData> BlocksList = new ArrayList<>();
         for (int y = 0;y <5;y++){
-            for (int x = 0;x <3;x++){
-                for (int z = 0;z <3;z++){
+            for (int x = -1;x <2;x++){
+                for (int z = -1;z <2;z++){
                     BlocksList.add(new BlockWithData(
                             x,y,z, STONE.getDefaultState()
                     ));
@@ -53,7 +54,10 @@ public class BuildBlock extends Block {
 
             }
         }
-        if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,BlocksList,2);
+        BuildTemplate template = new BuildTemplate(
+                "build1","build",1,BlocksList,20,30,200
+        );
+        if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,template,2);
     }
 
     public static void register(){

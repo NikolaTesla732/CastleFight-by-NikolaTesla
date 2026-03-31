@@ -20,7 +20,7 @@ public class Custom_castlefightClient implements ClientModInitializer {
     public void onInitializeClient() {
         ShopKey.register();
         AdminKey.register();
-        CastlefightNetworking.registerC2SPackets();
+        CastlefightNetworking.registerS2CPackets();
         WorldRenderEvents.END_MAIN.register(Draw::SelectBlock);
         HandledScreens.<ScanScreen,ScanHandlerScreen>register(Custom_castlefight.SCANSCREEN_TYPE,
                 (handler, inventory, title) -> new ScanHandlerScreen(handler, inventory, title));
