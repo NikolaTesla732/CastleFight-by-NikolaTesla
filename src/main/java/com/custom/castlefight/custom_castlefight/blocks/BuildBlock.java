@@ -55,7 +55,7 @@ public class BuildBlock extends Block {
             }
         }
         BuildTemplate template = new BuildTemplate(
-                "build1","build",1,BlocksList,20,30,200
+                "build",1,BlocksList,20,30,200
         );
         if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,template,2);
     }

@@ -14,7 +14,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
 import net.minecraft.world.WorldEvents;
 
 
@@ -50,7 +49,6 @@ public class BuildFunc {
      * а также для сериализации и десериализации шаблона в формат NBT.
      */
     public static class BuildTemplate {
-        private final String id;
         private final String name;
         private final int level;
         private final List<BlockWithData> blocks;
@@ -60,21 +58,23 @@ public class BuildFunc {
          */
         private final int spawnCD;
         private final int cost;
+        private final String displayName;
 
-
-        public BuildTemplate(String id, String name,int level, List<BlockWithData> blocks,int income,int spawnCD,int cost) {
-            this.id = id;
+        public BuildTemplate(String name,int level, List<BlockWithData> blocks,int income,int spawnCD,int cost) {
             this.blocks = blocks;
-            this.name = name;
+            this.name = normalizeName(name);
             this.level = level;
             this.income = income;
             this.spawnCD = spawnCD;
             this.cost = cost;
+            this.displayName = name;
         }
-
+        private static String normalizeName(String rawName){
+            return rawName.toLowerCase(Locale.ROOT).replace(' ','_');
+        }
         public BuildTemplate(NbtCompound data, RegistryWrapper.WrapperLookup lookup) {
-            this.id = data.getString("id", "");
-            this.name = data.getString("name", "");
+            this.displayName = data.getString("display_name", "");
+            this.name = normalizeName(displayName);
             this.income = data.getInt("income", 0);
             this.spawnCD = data.getInt("spawnCD", 40);
             this.cost = data.getInt("cost",100);
@@ -100,9 +100,6 @@ public class BuildFunc {
             this.blocks = blocks;
         }
 
-        public String getId() {
-            return id;
-        }
         public List<BlockWithData> getBlocks() {
             return blocks;
         }
@@ -111,6 +108,7 @@ public class BuildFunc {
         public int getIncome() { return income;}
         public int getSpawnCD() { return spawnCD;}
         public int getLevel() {return level;}
+        public String getDisplayName() {return displayName;}
 
         /**
          * Сериализует шаблон постройки в NBT.
@@ -122,8 +120,7 @@ public class BuildFunc {
          */
         public NbtCompound toNbt() {
             NbtCompound nbt = new NbtCompound();
-            nbt.putString("id", this.id);
-            nbt.putString("name", this.name);
+            nbt.putString("display_name", this.displayName);
             nbt.putInt("income",this.income);
             nbt.putInt("spawnCD",this.spawnCD);
             nbt.putInt("cost",this.cost);
@@ -142,8 +139,7 @@ public class BuildFunc {
             return nbt;
         }
         public void write(RegistryByteBuf buf){
-            buf.writeString(this.id);
-            buf.writeString(this.name);
+            buf.writeString(this.displayName);
             buf.writeInt(this.level);
             buf.writeInt(this.income);
             buf.writeInt(this.spawnCD);
@@ -154,8 +150,7 @@ public class BuildFunc {
             }
         }
         public static BuildTemplate read(RegistryByteBuf buf){
-            String id = buf.readString();
-            String name = buf.readString();
+            String display_name = buf.readString();
             int level = buf.readInt();
             int income = buf.readInt();
             int spawnCD = buf.readInt();
@@ -165,7 +160,7 @@ public class BuildFunc {
             for (int i =0;i<size;i++){
                 blocks.add(BlockWithData.read(buf));
             }
-            return new BuildTemplate(id,name,level,blocks,income,spawnCD,cost);
+            return new BuildTemplate(display_name,level,blocks,income,spawnCD,cost);
         }
         public static final PacketCodec<RegistryByteBuf,BuildTemplate> PACKET_CODEC = PacketCodec.of(
                 ((value, buf) -> value.write(buf)),
@@ -173,27 +168,6 @@ public class BuildFunc {
         );
     }
 
-    public static class BuildingTemplatesState extends PersistentState {
-        private final Map<String, BuildTemplate> templates;
-
-        public BuildingTemplatesState() {
-            this.templates = new HashMap<>();
-        }
-
-        public void put(BuildTemplate template){
-            templates.put(template.getId(),template);
-            markDirty();
-        }
-        public BuildTemplate getTemplate(String id){
-            return templates.get(id);
-        }
-        public boolean contains(String id){
-            return templates.containsKey(id);
-        }
-        public void save(){
-            NbtCompound root;
-        }
-    }
     public static void build(ServerWorld world, BlockWithData block, BlockPos origin){
         BlockState state = block.state;
         world.setBlockState(origin.add(block.x,block.y,block.z),state);

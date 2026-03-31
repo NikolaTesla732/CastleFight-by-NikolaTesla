@@ -31,11 +31,11 @@ public class ScanScreen extends ScreenHandler {
         this.world = playerInventory.player.getEntityWorld();
     }
 
-    public BuildTemplate OnScanClicked(String id,String name,int level,int cost, int income,int cooldown){
+    public BuildTemplate OnScanClicked(String name,int level,int cost, int income,int cooldown){
             if (this.world instanceof ServerWorld serverWorld){
                     var BlockList = BuildFunc.scanSection(this.startPos, serverWorld);
                     BuildTemplate build = new BuildTemplate(
-                        id,name,level,BlockList,income,cooldown,cost
+                        name,level,BlockList,income,cooldown,cost
                     );
                     BuildFunc.buildSection(serverWorld,startPos, build, 2);
                     return build;

@@ -46,7 +46,7 @@ public record RequestToScanC2SPacket(String name,int level,int cost, int income,
                                ServerPlayNetworking.Context context){
         if (context.player().currentScreenHandler instanceof ScanScreen screen){
             screen.OnScanClicked(
-                    payload.name(), payload.name(), payload.level(),payload.cost(), payload.income(),payload.cooldown()
+                     payload.name(), payload.level(),payload.cost(), payload.income(),payload.cooldown()
                     );
         }
     }
