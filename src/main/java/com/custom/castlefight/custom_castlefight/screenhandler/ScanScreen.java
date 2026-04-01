@@ -13,8 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.SCANSCREEN_TYPE;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.*;
 
 public class ScanScreen extends ScreenHandler {
 
@@ -31,18 +30,16 @@ public class ScanScreen extends ScreenHandler {
         this.world = playerInventory.player.getEntityWorld();
     }
 
-    public BuildTemplate OnScanClicked(String name,int level,int cost, int income,int cooldown){
+    public void OnScanClicked(String name,String race,int level,int cost, int income,int cooldown){
             if (this.world instanceof ServerWorld serverWorld){
                     var BlockList = BuildFunc.scanSection(this.startPos, serverWorld);
                     BuildTemplate build = new BuildTemplate(
-                        name,level,BlockList,income,cooldown,cost
+                        name,race,level,BlockList,income,cooldown,cost
                     );
-                    BuildFunc.buildSection(serverWorld,startPos, build, 2);
-                    return build;
+                    TEMPLATES.put(build);
 
             }
             LOGGER.info("Сохранено новое здание"+name);
-        return null;
     }
     public BlockPos getBlockPos() {
         return startPos;

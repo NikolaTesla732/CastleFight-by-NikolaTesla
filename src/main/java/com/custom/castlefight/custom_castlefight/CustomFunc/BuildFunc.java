@@ -50,6 +50,7 @@ public class BuildFunc {
      */
     public static class BuildTemplate {
         private final String name;
+        private final String race;
         private final int level;
         private final List<BlockWithData> blocks;
         private final int income;
@@ -60,7 +61,7 @@ public class BuildFunc {
         private final int cost;
         private final String displayName;
 
-        public BuildTemplate(String name,int level, List<BlockWithData> blocks,int income,int spawnCD,int cost) {
+        public BuildTemplate(String name,String race,int level, List<BlockWithData> blocks,int income,int spawnCD,int cost) {
             this.blocks = blocks;
             this.name = normalizeName(name);
             this.level = level;
@@ -68,6 +69,7 @@ public class BuildFunc {
             this.spawnCD = spawnCD;
             this.cost = cost;
             this.displayName = name;
+            this.race = race;
         }
         private static String normalizeName(String rawName){
             return rawName.toLowerCase(Locale.ROOT).replace(' ','_');
@@ -75,6 +77,7 @@ public class BuildFunc {
         public BuildTemplate(NbtCompound data, RegistryWrapper.WrapperLookup lookup) {
             this.displayName = data.getString("display_name", "");
             this.name = normalizeName(displayName);
+            this.race = data.getString("race","тьма");
             this.income = data.getInt("income", 0);
             this.spawnCD = data.getInt("spawnCD", 40);
             this.cost = data.getInt("cost",100);
@@ -109,6 +112,7 @@ public class BuildFunc {
         public int getSpawnCD() { return spawnCD;}
         public int getLevel() {return level;}
         public String getDisplayName() {return displayName;}
+        public String getRace() {return race;}
 
         /**
          * Сериализует шаблон постройки в NBT.
@@ -121,6 +125,7 @@ public class BuildFunc {
         public NbtCompound toNbt() {
             NbtCompound nbt = new NbtCompound();
             nbt.putString("display_name", this.displayName);
+            nbt.putString("race",this.race);
             nbt.putInt("income",this.income);
             nbt.putInt("spawnCD",this.spawnCD);
             nbt.putInt("cost",this.cost);
@@ -140,6 +145,7 @@ public class BuildFunc {
         }
         public void write(RegistryByteBuf buf){
             buf.writeString(this.displayName);
+            buf.writeString(this.race);
             buf.writeInt(this.level);
             buf.writeInt(this.income);
             buf.writeInt(this.spawnCD);
@@ -151,6 +157,7 @@ public class BuildFunc {
         }
         public static BuildTemplate read(RegistryByteBuf buf){
             String display_name = buf.readString();
+            String race = buf.readString();
             int level = buf.readInt();
             int income = buf.readInt();
             int spawnCD = buf.readInt();
@@ -160,7 +167,7 @@ public class BuildFunc {
             for (int i =0;i<size;i++){
                 blocks.add(BlockWithData.read(buf));
             }
-            return new BuildTemplate(display_name,level,blocks,income,spawnCD,cost);
+            return new BuildTemplate(display_name,race,level,blocks,income,spawnCD,cost);
         }
         public static final PacketCodec<RegistryByteBuf,BuildTemplate> PACKET_CODEC = PacketCodec.of(
                 ((value, buf) -> value.write(buf)),

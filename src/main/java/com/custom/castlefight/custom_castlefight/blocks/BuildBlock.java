@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BlockWithData;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
 import static net.minecraft.block.Blocks.STONE;
 
 public class BuildBlock extends Block {
@@ -54,9 +55,7 @@ public class BuildBlock extends Block {
 
             }
         }
-        BuildTemplate template = new BuildTemplate(
-                "build",1,BlocksList,20,30,200
-        );
+        BuildTemplate template = TEMPLATES.getBuild("тьма","баррак",1);
         if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,template,2);
     }
 

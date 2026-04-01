@@ -3,7 +3,6 @@ package com.custom.castlefight.custom_castlefight.client.screen;
 import com.custom.castlefight.custom_castlefight.Network.Packets.RequestToScanC2SPacket;
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -11,29 +10,24 @@ import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-
-import java.util.List;
 
 public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
     private BlockPos pos;
     private GridWidget grid;
-    private TextFieldWidget name_input;
-    private TextFieldWidget level_input;
-    private TextFieldWidget cost_input;
-    private TextFieldWidget cd_input;
-    private TextFieldWidget income_input;
-    private TextWidget name_text;
-    private TextWidget level_text;
-    private TextWidget cost_text;
-    private TextWidget income_text;
-    private TextWidget cd_text;
+    private TextFieldWidget nameInput;
+    private TextFieldWidget levelInput;
+    private TextFieldWidget costInput;
+    private TextFieldWidget cdInput;
+    private TextFieldWidget incomeInput;
+    private TextWidget nameText;
+    private TextWidget levelText;
+    private TextWidget costText;
+    private TextWidget incomeText;
+    private TextWidget cdText;
+    private TextWidget raceText;
+    private TextFieldWidget raceInput;
     public ScanHandlerScreen(ScanScreen handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
          pos = handler.getBlockPos();
@@ -62,17 +56,18 @@ public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
 
     public void OnScanClicked(){
 
-        if (!this.name_input.getText().isBlank() && !this.level_input.getText().isBlank() &&
-                !this.cost_input.getText().isBlank() && !this.income_input.getText().isBlank() &&
-                !this.cd_input.getText().isBlank()){
-            String name = this.name_input.getText();
-            if (isInt(this.level_input.getText()) && isInt(this.cost_input.getText())&&
-                    isInt(this.income_input.getText())&&isInt(this.cd_input.getText())){
-                int level = Integer.parseInt(this.level_input.getText());
-                int cost = Integer.parseInt(this.cost_input.getText());
-                int income = Integer.parseInt(this.income_input.getText());
-                int cooldown = Integer.parseInt(this.cd_input.getText());
-                ClientPlayNetworking.send(new RequestToScanC2SPacket(name, level, cost, income, cooldown));
+        if (!this.nameInput.getText().isBlank() && !this.levelInput.getText().isBlank() &&
+                !this.costInput.getText().isBlank() && !this.incomeInput.getText().isBlank() &&
+                !this.cdInput.getText().isBlank() && !this.raceInput.getText().isBlank()){
+            String name = this.nameInput.getText();
+            String race = this.raceInput.getText();
+            if (isInt(this.levelInput.getText()) && isInt(this.costInput.getText())&&
+                    isInt(this.incomeInput.getText())&&isInt(this.cdInput.getText())){
+                int level = Integer.parseInt(this.levelInput.getText());
+                int cost = Integer.parseInt(this.costInput.getText());
+                int income = Integer.parseInt(this.incomeInput.getText());
+                int cooldown = Integer.parseInt(this.cdInput.getText());
+                ClientPlayNetworking.send(new RequestToScanC2SPacket(name,race, level, cost, income, cooldown));
                 client.currentScreen.close();
             }
         }
@@ -85,12 +80,12 @@ public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
         this.grid.setColumnSpacing(8);
         int w = 100;
         int h = 20;
-        this.name_text = new TextWidget(Text.literal("Название сканируемого здания:"),this.textRenderer);
-        this.level_text = new TextWidget(Text.literal("Уровень здания:"),this.textRenderer);
-        this.cost_text = new TextWidget(Text.literal("Введите стоимость здания:"),this.textRenderer);
-        this.income_text = new TextWidget(Text.literal("Введите доход здания:"),this.textRenderer);
-        this.cd_text = new TextWidget(Text.literal("Введите кулдаун здания:"),this.textRenderer);
-
+        this.nameText = new TextWidget(Text.literal("Название сканируемого здания:"),this.textRenderer);
+        this.levelText = new TextWidget(Text.literal("Уровень здания:"),this.textRenderer);
+        this.costText = new TextWidget(Text.literal("Введите стоимость здания:"),this.textRenderer);
+        this.incomeText = new TextWidget(Text.literal("Введите доход здания:"),this.textRenderer);
+        this.cdText = new TextWidget(Text.literal("Введите кулдаун здания:"),this.textRenderer);
+        this.raceText = new TextWidget(Text.literal("Введите расу здания:"),this.textRenderer);
         ButtonWidget scan_button = ButtonWidget.builder(
                 Text.literal("Отсканировать"),
                 btn -> {
@@ -101,22 +96,25 @@ public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
                 }
         ).size(100,20).build();
 
-        this.name_input = new TextFieldWidget(this.textRenderer,100,20,Text.literal("Введите желаемое название для здания:"));
-        this.level_input = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите уровень здания:"));
-        this.cost_input = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите стоимость здания"));
-        this.cd_input = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите кулдаун здания:"));
-        this.income_input = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите доход здания:"));
-        this.grid.add(this.name_text,0,0);
-        this.grid.add(this.level_text,1,0);
-        this.grid.add(this.cost_text,2,0);
-        this.grid.add(this.income_text,3,0);
-        this.grid.add(this.cd_text,4,0);
+        this.nameInput = new TextFieldWidget(this.textRenderer,100,20,Text.literal("Введите желаемое название для здания:"));
+        this.levelInput = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите уровень здания:"));
+        this.costInput = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите стоимость здания"));
+        this.cdInput = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите кулдаун здания:"));
+        this.incomeInput = new TextFieldWidget(this.textRenderer,30,20,Text.literal("Введите доход здания:"));
+        this.raceInput = new TextFieldWidget(this.textRenderer,100,20,Text.literal("Введите расу здания:"));
+        this.grid.add(this.nameText,0,0);
+        this.grid.add(this.raceText,1,0);
+        this.grid.add(this.levelText,2,0);
+        this.grid.add(this.costText,3,0);
+        this.grid.add(this.incomeText,4,0);
+        this.grid.add(this.cdText,5,0);
 
-        this.grid.add(this.name_input,0,1);
-        this.grid.add(this.level_input,1,1);
-        this.grid.add(this.cost_input,2,1);
-        this.grid.add(this.income_input,3,1);
-        this.grid.add(this.cd_input,4,1);
+        this.grid.add(this.nameInput,0,1);
+        this.grid.add(this.raceInput,1,1);
+        this.grid.add(this.levelInput,2,1);
+        this.grid.add(this.costInput,3,1);
+        this.grid.add(this.incomeInput,4,1);
+        this.grid.add(this.cdInput,5,1);
 
         this.grid.add(scan_button,6,0);
         this.grid.setPosition(this.width/2-210,this.height/2-110);

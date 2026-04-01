@@ -14,12 +14,13 @@ import java.util.List;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 
-public record RequestToScanC2SPacket(String name,int level,int cost, int income,int cooldown) implements CustomPayload {
+public record RequestToScanC2SPacket(String name,String race,int level,int cost, int income,int cooldown) implements CustomPayload {
     public static final Identifier RAW_ID = Identifier.of(MOD_ID, "request_to_scan");
     public static final CustomPayload.Id<RequestToScanC2SPacket> ID =
             new CustomPayload.Id<>(RAW_ID);
     public void write(RegistryByteBuf buf){
         buf.writeString(this.name);
+        buf.writeString(this.race);
         buf.writeInt(this.level);
         buf.writeInt(this.cost);
         buf.writeInt(this.income);
@@ -28,11 +29,12 @@ public record RequestToScanC2SPacket(String name,int level,int cost, int income,
 
     public static RequestToScanC2SPacket read(RegistryByteBuf buf){
         String name = buf.readString();
+        String race = buf.readString();
         int level = buf.readInt();
         int cost = buf.readInt();
         int income = buf.readInt();
         int cooldown = buf.readInt();
-        return new RequestToScanC2SPacket(name,level,cost,income,cooldown);
+        return new RequestToScanC2SPacket(name,race,level,cost,income,cooldown);
     }
     public static final PacketCodec<RegistryByteBuf,RequestToScanC2SPacket> CODEC = PacketCodec.of(
             RequestToScanC2SPacket::write,
@@ -46,7 +48,7 @@ public record RequestToScanC2SPacket(String name,int level,int cost, int income,
                                ServerPlayNetworking.Context context){
         if (context.player().currentScreenHandler instanceof ScanScreen screen){
             screen.OnScanClicked(
-                     payload.name(), payload.level(),payload.cost(), payload.income(),payload.cooldown()
+                     payload.name(), payload.race(), payload.level(),payload.cost(), payload.income(),payload.cooldown()
                     );
         }
     }
