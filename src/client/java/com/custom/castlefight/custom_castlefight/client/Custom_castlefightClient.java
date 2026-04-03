@@ -3,8 +3,10 @@ package com.custom.castlefight.custom_castlefight.client;
 import com.custom.castlefight.custom_castlefight.Custom_castlefight;
 import com.custom.castlefight.custom_castlefight.Network.CastlefightNetworking;
 import com.custom.castlefight.custom_castlefight.client.bind.AdminKey;
+import com.custom.castlefight.custom_castlefight.client.bind.RaceKey;
 import com.custom.castlefight.custom_castlefight.client.bind.ShopKey;
 import com.custom.castlefight.custom_castlefight.client.render.Draw;
+import com.custom.castlefight.custom_castlefight.client.screen.RaceBuildsScreen;
 import com.custom.castlefight.custom_castlefight.client.screen.ScanHandlerScreen;
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -20,6 +22,7 @@ public class Custom_castlefightClient implements ClientModInitializer {
     public void onInitializeClient() {
         ShopKey.register();
         AdminKey.register();
+        RaceKey.register();
         CastlefightNetworking.registerS2CPackets();
         WorldRenderEvents.END_MAIN.register(Draw::SelectBlock);
         HandledScreens.<ScanScreen,ScanHandlerScreen>register(Custom_castlefight.SCANSCREEN_TYPE,

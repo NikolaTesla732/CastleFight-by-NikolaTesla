@@ -2,14 +2,18 @@ package com.custom.castlefight.custom_castlefight.blocks;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.Custom_castlefight;
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.BuildItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
@@ -23,12 +27,18 @@ import java.util.List;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BlockWithData;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static net.minecraft.block.Blocks.STONE;
 
 public class BuildBlock extends Block {
     public BuildBlock(Settings settings) {
         super(settings);
     }
+
+    public void setBuild(BuildTemplate build){
+        this.buildTemplate = build;
+    }
+    private BuildTemplate buildTemplate = null;
     private static final Identifier ID = Identifier.of(MOD_ID,"buildblock");
     public static final RegistryKey<Block> Key = RegistryKey.of(RegistryKeys.BLOCK,ID);
     public static final RegistryKey<Item> Item_Key = RegistryKey.of(RegistryKeys.ITEM,ID);
@@ -41,22 +51,33 @@ public class BuildBlock extends Block {
             new Item.Settings().maxCount(1)
             );
 
+
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        List<BlockWithData> BlocksList = new ArrayList<>();
-        for (int y = 0;y <5;y++){
-            for (int x = -1;x <2;x++){
-                for (int z = -1;z <2;z++){
-                    BlocksList.add(new BlockWithData(
-                            x,y,z, STONE.getDefaultState()
-                    ));
-                }
 
-            }
+        if (world.isClient()){return;}
+        NbtComponent customData = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customData == null){
+            LOGGER.debug("Не удалось получить данные о конкретном строителе");
+            return;
         }
-        BuildTemplate template = TEMPLATES.getBuild("тьма","баррак",1);
-        if (!world.isClient()) BuildFunc.buildSection((ServerWorld) world,pos,template,2);
+        NbtCompound nbt = customData.copyNbt();
+        String buildId = nbt.getString("buildId","тьма:кладбище:1");
+        if (buildId.isBlank()) {
+            LOGGER.debug("идентификатор здания отсутствует");
+            return;
+        }
+        String[] parts = buildId.split(":");
+        if(parts.length < 3) {
+            LOGGER.debug("Недостаточно данных для поиска шаблона");
+            return;
+        }
+        LOGGER.info("Id: "+buildId);
+        String race = parts[0], name = parts[1];
+        int level = Integer.parseInt(parts[2]);
+        BuildTemplate build = TEMPLATES.getBuild(race,name,level);
+        BuildFunc.buildSection((ServerWorld) world,pos,build,2);
     }
 
     public static void register(){

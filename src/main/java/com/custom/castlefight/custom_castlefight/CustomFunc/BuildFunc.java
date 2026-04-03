@@ -69,7 +69,7 @@ public class BuildFunc {
             this.spawnCD = spawnCD;
             this.cost = cost;
             this.displayName = name;
-            this.race = race;
+            this.race = normalizeName(race);
         }
         private static String normalizeName(String rawName){
             return rawName.toLowerCase(Locale.ROOT).replace(' ','_');
