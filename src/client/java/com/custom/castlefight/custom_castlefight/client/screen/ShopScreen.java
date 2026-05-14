@@ -1,7 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
-import com.custom.castlefight.custom_castlefight.Custom_castlefight;
-import com.custom.castlefight.custom_castlefight.Network.Packets.RequestToGiveC2SPacket;
+import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
 import com.custom.castlefight.custom_castlefight.blocks.BuildBlock;
 import com.custom.castlefight.custom_castlefight.blocks.ScanBlock;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;

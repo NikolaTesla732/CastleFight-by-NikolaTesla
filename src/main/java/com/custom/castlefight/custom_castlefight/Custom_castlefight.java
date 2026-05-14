@@ -23,12 +23,13 @@ public class Custom_castlefight implements ModInitializer {
     public  static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static ScreenHandlerType<ScanScreen> SCANSCREEN_TYPE;
     public static final Identifier SCANSCREEN_ID = Identifier.of(MOD_ID,"scan_screen");
-    public static GlobalBuildTemplateStorage TEMPLATES = new GlobalBuildTemplateStorage();
+    public static GlobalBuildTemplateStorage TEMPLATES;
     @Override
     public void onInitialize() {
         ScanBlock.register();
         BuildBlock.register();
         CastlefightNetworking.registerC2SPackets();
+        CastlefightNetworking.registerS2CPackets();
         BuildFunc.init();
         SCANSCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,
@@ -40,6 +41,7 @@ public class Custom_castlefight implements ModInitializer {
         );
         ServerLifecycleEvents.SERVER_STARTED.register(server ->{
             RegistryWrapper.WrapperLookup lookup = server.getRegistryManager();
+            this.TEMPLATES = new GlobalBuildTemplateStorage();
             TEMPLATES.load(lookup);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {

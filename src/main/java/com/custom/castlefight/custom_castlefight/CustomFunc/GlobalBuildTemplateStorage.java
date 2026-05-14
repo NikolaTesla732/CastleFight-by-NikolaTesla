@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
 
 public class GlobalBuildTemplateStorage {
     private final Path filePath;
@@ -66,6 +67,12 @@ public class GlobalBuildTemplateStorage {
         this.templates.put(build.getRace(),buildTemp);
         save();
     }
+    public void putRace(String race){
+        if(!this.templates.containsKey(race)){
+            this.templates.put(race,new HashMap<>());
+        }
+        save();
+    }
     public boolean contains(BuildFunc.BuildTemplate build){
         return contains(build.getRace(),build.getName(),build.getLevel());
     }
@@ -93,20 +100,19 @@ public class GlobalBuildTemplateStorage {
         if (contains(race,name,level)) return this.templates.get(race).get(name).get(level);
         return null;
     }
+    public Set<String> getRace(){
+        return new HashSet<>(this.templates.keySet());
+    }
     public Map<String,Map<Integer, BuildFunc.BuildTemplate>> getRaceBuilds(String race){
-        if (contains(race)) return this.templates.get(race);
+        if (contains(race)) return new HashMap<>(this.templates.get(race));
         return new HashMap<>();
     }
     public Set<Integer> getLevels(String race,String name){
-        if (contains(race,name)) return this.templates.get(race).get(name).keySet();
+        if (contains(race,name)) return new HashSet<>(this.templates.get(race).get(name).keySet());
         return new HashSet<>();
     }
 
-    /**
-     * Функция удаления здания, по его объекту
-     *
-     * @param build BuildTemplate здания
-     */
+
     public void removeBuild(BuildFunc.BuildTemplate build){
         removeBuild(build.getRace(),build.getName(),build.getLevel());
     }
@@ -121,6 +127,10 @@ public class GlobalBuildTemplateStorage {
         if (contains(race,name,level)){
             this.templates.get(race).get(name).remove(level);
         }
+        if (contains(race,name) && this.templates.get(race).get(name).keySet().isEmpty()){
+            this.templates.get(race).remove(name);
+        }
+
         save();
     }
     public void removeAllLevelsBuild(BuildFunc.BuildTemplate build){

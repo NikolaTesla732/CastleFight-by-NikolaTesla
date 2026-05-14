@@ -71,7 +71,7 @@ public class BuildFunc {
             this.displayName = name;
             this.race = normalizeName(race);
         }
-        private static String normalizeName(String rawName){
+        public static String normalizeName(String rawName){
             return rawName.toLowerCase(Locale.ROOT).replace(' ','_');
         }
         public BuildTemplate(NbtCompound data, RegistryWrapper.WrapperLookup lookup) {
@@ -250,4 +250,5 @@ public class BuildFunc {
         }
         return ans;
     }
+
 }

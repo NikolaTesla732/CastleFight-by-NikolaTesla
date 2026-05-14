@@ -1,16 +1,12 @@
-package com.custom.castlefight.custom_castlefight.Network.Packets;
+package com.custom.castlefight.custom_castlefight.Network.PacketsC2S;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-
-import java.util.List;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 
@@ -49,7 +45,7 @@ public record RequestToScanC2SPacket(String name,String race,int level,int cost,
         if (context.player().currentScreenHandler instanceof ScanScreen screen){
             screen.OnScanClicked(
                      payload.name(), payload.race(), payload.level(),payload.cost(), payload.income(),payload.cooldown()
-                    );
+            );
         }
     }
     @Override

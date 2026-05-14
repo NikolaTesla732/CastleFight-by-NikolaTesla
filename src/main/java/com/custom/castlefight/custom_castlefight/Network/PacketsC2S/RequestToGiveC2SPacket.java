@@ -1,13 +1,11 @@
-package com.custom.castlefight.custom_castlefight.Network.Packets;
+package com.custom.castlefight.custom_castlefight.Network.PacketsC2S;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
@@ -39,7 +37,7 @@ public record RequestToGiveC2SPacket(ItemStack ToGive) implements CustomPayload 
 
     public static void receive(RequestToGiveC2SPacket payload,
                                ServerPlayNetworking.Context context) {
-//        ServerPlayerEntity player = context.player();
+
         context.player().getInventory().insertStack(payload.ToGive);
 
 

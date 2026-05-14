@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
-import com.custom.castlefight.custom_castlefight.Network.Packets.RequestToScanC2SPacket;
+import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToScanC2SPacket;
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
