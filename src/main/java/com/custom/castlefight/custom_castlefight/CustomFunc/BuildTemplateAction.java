@@ -124,6 +124,7 @@ public class BuildTemplateAction {
     private boolean hasOldBuild() {
         return this.oldBuild != null;
     }
+
     public boolean can(){
        return switch (this.action){
             case GET_BUILDS_SET, REMOVE_RACE, PUT_RACE -> (hasRace()

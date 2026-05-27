@@ -1,6 +1,7 @@
 package com.custom.castlefight.custom_castlefight;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
+import com.custom.castlefight.custom_castlefight.CustomFunc.Construction;
 import com.custom.castlefight.custom_castlefight.CustomFunc.GlobalBuildTemplateStorage;
 import com.custom.castlefight.custom_castlefight.Network.CastlefightNetworking;
 import com.custom.castlefight.custom_castlefight.blocks.BuildBlock;
@@ -30,7 +31,7 @@ public class Custom_castlefight implements ModInitializer {
         BuildBlock.register();
         CastlefightNetworking.registerC2SPackets();
         CastlefightNetworking.registerS2CPackets();
-        BuildFunc.init();
+
         SCANSCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,
                 SCANSCREEN_ID,
@@ -41,6 +42,7 @@ public class Custom_castlefight implements ModInitializer {
         );
         ServerLifecycleEvents.SERVER_STARTED.register(server ->{
             RegistryWrapper.WrapperLookup lookup = server.getRegistryManager();
+            Construction.ConstructionTicker.register();
             this.TEMPLATES = new GlobalBuildTemplateStorage();
             TEMPLATES.load(lookup);
         });

@@ -2,6 +2,8 @@ package com.custom.castlefight.custom_castlefight.blocks;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.CustomFunc.Construction.ConstructionState;
+import com.custom.castlefight.custom_castlefight.CustomFunc.Construction.ConstructionTaskData;
 import com.custom.castlefight.custom_castlefight.Custom_castlefight;
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.BuildItem;
 import net.minecraft.block.Block;
@@ -77,7 +79,11 @@ public class BuildBlock extends Block {
         String race = parts[0], name = parts[1];
         int level = Integer.parseInt(parts[2]);
         BuildTemplate build = TEMPLATES.getBuild(race,name,level);
-        BuildFunc.buildSection((ServerWorld) world,pos,build,2);
+        ConstructionTaskData task = new ConstructionTaskData(pos,build.getRace(),build.getName(),
+                build.getLevel(),0,3,0);
+        ConstructionState constructionState = ConstructionState.get((ServerWorld) world);
+        constructionState.addTask(task);
+        LOGGER.info("Создана задача строительства: {}:{}:{} at {}", race, name, level, pos);
     }
 
     public static void register(){
