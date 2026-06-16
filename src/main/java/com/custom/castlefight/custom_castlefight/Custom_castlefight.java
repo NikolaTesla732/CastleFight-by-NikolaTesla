@@ -1,11 +1,12 @@
 package com.custom.castlefight.custom_castlefight;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
 import com.custom.castlefight.custom_castlefight.CustomFunc.Construction;
 import com.custom.castlefight.custom_castlefight.CustomFunc.GlobalBuildTemplateStorage;
 import com.custom.castlefight.custom_castlefight.Network.CastlefightNetworking;
-import com.custom.castlefight.custom_castlefight.blocks.BuildBlock;
+import com.custom.castlefight.custom_castlefight.blocks.BuildingBlock;
+import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
 import com.custom.castlefight.custom_castlefight.blocks.ScanBlock;
+import com.custom.castlefight.custom_castlefight.blocks.blockentity.CastlefightBlockEntities;
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -28,9 +29,11 @@ public class Custom_castlefight implements ModInitializer {
     @Override
     public void onInitialize() {
         ScanBlock.register();
-        BuildBlock.register();
+        BuildingBlock.register();
+        ConstructionBlock.register();
         CastlefightNetworking.registerC2SPackets();
         CastlefightNetworking.registerS2CPackets();
+        CastlefightBlockEntities.register();
 
         SCANSCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,

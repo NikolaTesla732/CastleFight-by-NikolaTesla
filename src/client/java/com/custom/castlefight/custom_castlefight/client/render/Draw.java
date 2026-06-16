@@ -1,24 +1,16 @@
 package com.custom.castlefight.custom_castlefight.client.render;
 
-import com.custom.castlefight.custom_castlefight.blocks.BuildBlock;
-import com.custom.castlefight.custom_castlefight.blocks.blockitems.BuildItem;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.custom.castlefight.custom_castlefight.blocks.blockitems.ConstructionItem;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
 import org.joml.Matrix4f;
 
 public class Draw {
@@ -72,7 +64,7 @@ public class Draw {
         if (slot == EquipmentSlot.MAINHAND){
 
         }
-        if ( PLAYERVIEW.getType() == HitResult.Type.BLOCK && player.getMainHandStack().getItem() instanceof BuildItem){
+        if ( PLAYERVIEW.getType() == HitResult.Type.BLOCK && player.getMainHandStack().getItem() instanceof ConstructionItem){
             BlockPos pos = ((BlockHitResult) PLAYERVIEW).getBlockPos().add(0,1,0);
             Box box = new Box(pos);
             box = box.stretch(1,4,1);

@@ -1,25 +1,17 @@
 package com.custom.castlefight.custom_castlefight.CustomFunc;
 
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BlockWithData;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateType;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BlockWithData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.*;
 
@@ -147,13 +139,13 @@ public class Construction {
                     String name = task.getName();
                     int level = task.getLevel();
                     BuildTemplate build = TEMPLATES.getBuild(race, name, level);
-                    if (build == null){
+                    if (build == null) {
                         task.timer = task.getDelayTicks();
-                        LOGGER.error("Не удалось выполнить задачу постройки здания из-за невозможноности получения шаблона здания - раса: {},название: {},уровень: {}",race,name,level);
+                        LOGGER.error("Не удалось выполнить задачу постройки здания из-за невозможноности получения шаблона здания - раса: {},название: {},уровень: {}", race, name, level);
                         continue;
                     }
                     if (task.getNextBlockIndex() >= build.getBlocks().size()) {
-                        LOGGER.info("Задача постройки здания {} завершена",build.getDisplayName());
+                        LOGGER.info("Задача постройки здания {} завершена", build.getDisplayName());
                         tasks.remove(i);
                         i--;
                         continue;

@@ -54,14 +54,6 @@ public class ScanBlock extends Block {
             new Item.Settings().maxCount(1)
     );
 
-//    @Override
-//    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
-//        super.onPlaced(world, pos, state, placer, itemStack);
-//        if (world.isClient()) return;
-//        List<List<Pair<BlockState,BlockPos>>> blocks = BuildFunc.scanSection(pos.add(1,0,1),(ServerWorld) world);
-//        BuildFunc.buildSection((ServerWorld) world,blocks,2);
-//    }
-
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!world. isClient()) {

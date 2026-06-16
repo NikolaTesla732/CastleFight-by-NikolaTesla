@@ -5,6 +5,6 @@
 
   "block.custom_castlefight.scanblock" : "Сканер",
   "item.custom_castlefight.scanblock": "Сканер",
-  "block.custom_castlefight.buildblock" : "Строитель",
-  "item.custom_castlefight.buildblock" : "Строитель"
+  "block.custom_castlefight.constructionblock" : "Строитель",
+  "item.custom_castlefight.constructionblock" : "Строитель"
 }

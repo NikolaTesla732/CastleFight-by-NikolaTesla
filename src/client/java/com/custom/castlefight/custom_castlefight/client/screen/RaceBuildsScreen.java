@@ -4,7 +4,7 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
-import com.custom.castlefight.custom_castlefight.blocks.BuildBlock;
+import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -17,10 +17,8 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
 public class RaceBuildsScreen extends Screen {
@@ -99,7 +97,7 @@ public class RaceBuildsScreen extends Screen {
         String buildId = build.getRace()+":"+build.getName()+":"+build.getLevel();
         NbtCompound nbt = new NbtCompound();
         nbt.putString("buildId", buildId);
-        ItemStack stack = new ItemStack(BuildBlock.BuildBlock);
+        ItemStack stack = new ItemStack(ConstructionBlock.constructionBlock);
         stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
         ClientPlayNetworking.send(new RequestToGiveC2SPacket(stack));
         client.player.closeScreen();

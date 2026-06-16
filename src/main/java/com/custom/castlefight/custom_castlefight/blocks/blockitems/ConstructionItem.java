@@ -1,22 +1,11 @@
 package com.custom.castlefight.custom_castlefight.blocks.blockitems;
 
-import net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys;
 import net.minecraft.block.Block;
-import net.minecraft.block.entity.VaultBlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-public class BuildItem extends BlockItem {
 
-    public BuildItem(Block block, Settings settings) {
+public class ConstructionItem extends BlockItem {
+
+    public ConstructionItem(Block block, Settings settings) {
         super(block, settings);
     }
 
