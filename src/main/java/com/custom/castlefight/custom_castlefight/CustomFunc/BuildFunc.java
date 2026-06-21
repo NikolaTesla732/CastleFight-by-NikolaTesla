@@ -1,8 +1,11 @@
 package com.custom.castlefight.custom_castlefight.CustomFunc;
 
 import com.custom.castlefight.custom_castlefight.blocks.BuildingBlock;
+import com.custom.castlefight.custom_castlefight.blocks.blockentity.BuildingBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
@@ -17,6 +20,8 @@ import net.minecraft.world.WorldEvents;
 
 
 import java.util.*;
+
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class BuildFunc {
 
@@ -204,12 +209,27 @@ public class BuildFunc {
     }
 
     public static void build(ServerWorld world, BlockWithData block, BlockPos origin) {
-        BlockState state = block.state;
-        world.setBlockState(origin.add(block.x, block.y, block.z),BuildingBlock.BUILDING_BLOCK.getDefaultState());
         if (world.isClient()) return;
+        BlockState state = block.state();
+        BlockPos pos = origin.add(block.x, block.y, block.z);
+        world.setBlockState(pos,BuildingBlock.BUILDING_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity instanceof BuildingBlockEntity buildingBlockEntity){
+            buildingBlockEntity.setVisualState(state);
+        }
+//        if (block.center()){
+//            world.setBlockState(pos,BuildingBlock.BUILDING_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+//            BlockEntity blockEntity = world.getBlockEntity(pos);
+//            if (blockEntity instanceof BuildingBlockEntity buildingBlockEntity){
+//                buildingBlockEntity.setVisualState(state);
+//            }
+//        }else{
+//            world.setBlockState(pos,block.state(), Block.NOTIFY_ALL);
+//
+//        }
         world.syncWorldEvent(
                 WorldEvents.BLOCK_BROKEN,
-                origin.add(block.x, block.y, block.z),
+                pos,
                 Block.getRawIdFromState(state)
         );
     }

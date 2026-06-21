@@ -31,7 +31,7 @@ public class ConstructionBlock extends Block {
         super(settings);
     }
 
-    private static final Identifier ID = Identifier.of(MOD_ID,"constructionblock");
+    private static final Identifier ID = Identifier.of(MOD_ID,"construction_block");
     public static final RegistryKey<Block> KEY = RegistryKey.of(RegistryKeys.BLOCK,ID);
     public static final RegistryKey<Item> Item_Key = RegistryKey.of(RegistryKeys.ITEM,ID);
 

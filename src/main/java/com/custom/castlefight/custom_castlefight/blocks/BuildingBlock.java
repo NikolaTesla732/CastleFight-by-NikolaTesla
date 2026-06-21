@@ -24,15 +24,13 @@ public class BuildingBlock extends Block implements BlockEntityProvider {
     public static final RegistryKey<Block> KEY = RegistryKey.of(RegistryKeys.BLOCK,ID);
     public static final Block BUILDING_BLOCK = Blocks.register(KEY,
             BuildingBlock::new,
-            Settings.create()
+            Settings.create().nonOpaque()
     );
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         return super.onUse(state, world, pos, player, hit);
     }
-
-
 
     public static void register(){
 

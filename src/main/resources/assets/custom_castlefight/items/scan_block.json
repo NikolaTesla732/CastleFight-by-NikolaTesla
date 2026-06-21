@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "custom_castlefight:block/scanblock"
+    "model": "custom_castlefight:block/scan_block"
   }
 }

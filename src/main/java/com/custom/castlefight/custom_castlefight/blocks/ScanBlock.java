@@ -40,7 +40,7 @@ public class ScanBlock extends Block {
         super(settings);
     }
 
-    private static final Identifier ScanBlock_ID = Identifier.of(Custom_castlefight.MOD_ID,"scanblock");
+    private static final Identifier ScanBlock_ID = Identifier.of(Custom_castlefight.MOD_ID,"scan_block");
     public static final RegistryKey<Block> key = RegistryKey.of(RegistryKeys.BLOCK,ScanBlock_ID);
     public static final Block ScanBlock = Blocks.register(key,
             ScanBlock::new,

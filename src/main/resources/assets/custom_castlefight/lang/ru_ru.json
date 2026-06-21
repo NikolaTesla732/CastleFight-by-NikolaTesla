@@ -3,8 +3,8 @@
   "category.custom_castlefight.shop_key": "CastleFight — Управление магазином",
   "key.custom_castlefight.open_shop": "Открыть магазин",
 
-  "block.custom_castlefight.scanblock" : "Сканер",
-  "item.custom_castlefight.scanblock": "Сканер",
-  "block.custom_castlefight.constructionblock" : "Строитель",
-  "item.custom_castlefight.constructionblock" : "Строитель"
+  "block.custom_castlefight.scan_block" : "Сканер",
+  "item.custom_castlefight.scan_block": "Сканер",
+  "block.custom_castlefight.construction_block" : "Строитель",
+  "item.custom_castlefight.construction_block" : "Строитель"
 }

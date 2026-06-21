@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "custom_castlefight:item/constructionblock"
+    "layer0": "custom_castlefight:item/construction_block"
   }
 }
