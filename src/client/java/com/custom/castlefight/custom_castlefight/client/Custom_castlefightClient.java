@@ -18,11 +18,14 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBlockStateModel;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.render.BlockRenderLayer;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.client.world.ClientWorld;
 
@@ -30,6 +33,7 @@ public class Custom_castlefightClient implements ClientModInitializer {
     public static ClientTempStorage CLIENT_TEMP;
     @Override
     public void onInitializeClient() {
+        BlockRenderLayerMap.putBlock(BuildingBlock.BUILDING_BLOCK, BlockRenderLayer.CUTOUT);
         ModelLoadingPlugin.register(pluginContext -> {
             pluginContext.modifyBlockModelAfterBake().register(((model, context) -> {
                 if (context.state().isOf(BuildingBlock.BUILDING_BLOCK)){
