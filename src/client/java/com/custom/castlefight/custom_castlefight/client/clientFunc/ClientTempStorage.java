@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.clientFunc;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ public class ClientTempStorage {
     }
     private String race,name;
     private int level;
-    private BuildFunc.BuildTemplate newBuild,oldBuild;
+    private BuildUtilities.BuildTemplate newBuild,oldBuild;
     private Set<Integer> levelsSet;
     private Set<String> namesSet;
     private Set<String> racesSet;
@@ -24,11 +24,11 @@ public class ClientTempStorage {
     public void resetChanges(){
         this.changes = false;
     }
-    public void setNewBuild(BuildFunc.BuildTemplate build) {
+    public void setNewBuild(BuildUtilities.BuildTemplate build) {
         this.newBuild = build;
         this.changes = true;
     }
-    public void setOldBuild(BuildFunc.BuildTemplate build) {
+    public void setOldBuild(BuildUtilities.BuildTemplate build) {
         this.oldBuild = build;
         this.changes = true;
     }
@@ -66,14 +66,14 @@ public class ClientTempStorage {
         this.changes = false;
         return nameTemp;
     }
-    public BuildFunc.BuildTemplate getNewBuildWithClean() {
-        BuildFunc.BuildTemplate build = newBuild;
+    public BuildUtilities.BuildTemplate getNewBuildWithClean() {
+        BuildUtilities.BuildTemplate build = newBuild;
         this.newBuild = null;
         this.changes = false;
         return build;
     }
-    public BuildFunc.BuildTemplate getOldBuildWithClean() {
-        BuildFunc.BuildTemplate build = oldBuild;
+    public BuildUtilities.BuildTemplate getOldBuildWithClean() {
+        BuildUtilities.BuildTemplate build = oldBuild;
         this.oldBuild = null;
         this.changes = false;
         return build;
@@ -121,11 +121,11 @@ public class ClientTempStorage {
         this.changes = false;
         return new HashSet<>(levelsSet);
     }
-    public BuildFunc.BuildTemplate getOldBuild() {
+    public BuildUtilities.BuildTemplate getOldBuild() {
         this.changes = false;
         return oldBuild;
     }
-    public BuildFunc.BuildTemplate getNewBuild() {
+    public BuildUtilities.BuildTemplate getNewBuild() {
         this.changes = false;
         return newBuild;
     }

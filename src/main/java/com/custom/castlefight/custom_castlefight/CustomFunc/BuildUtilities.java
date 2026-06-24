@@ -4,7 +4,6 @@ import com.custom.castlefight.custom_castlefight.blocks.BuildingBlock;
 import com.custom.castlefight.custom_castlefight.blocks.blockentity.BuildingBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -21,9 +20,7 @@ import net.minecraft.world.WorldEvents;
 
 import java.util.*;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-
-public class BuildFunc {
+public class BuildUtilities {
 
     public record BlockWithData(int x, int y, int z, BlockState state,boolean center) {
         public void write(RegistryByteBuf buf) {

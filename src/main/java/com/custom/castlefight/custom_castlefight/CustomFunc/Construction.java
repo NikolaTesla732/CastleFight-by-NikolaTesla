@@ -1,7 +1,7 @@
 package com.custom.castlefight.custom_castlefight.CustomFunc;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BlockWithData;
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BlockWithData;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -152,7 +152,7 @@ public class Construction {
                     }
                     BlockWithData block = build.getBlocks().get(task.getNextBlockIndex());
                     task.nextBlockIndex++;
-                    BuildFunc.build(world, block, task.getOrigin());
+                    BuildUtilities.build(world, block, task.getOrigin());
                     task.timer = task.getDelayTicks();
                 }
             }

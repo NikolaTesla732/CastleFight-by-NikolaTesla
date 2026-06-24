@@ -1,17 +1,15 @@
 package com.custom.castlefight.custom_castlefight.screenhandler;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.*;
 
@@ -32,7 +30,7 @@ public class ScanScreen extends ScreenHandler {
 
     public void OnScanClicked(String name,String race,int level,int cost, int income,int cooldown){
             if (this.world instanceof ServerWorld serverWorld){
-                    var BlockList = BuildFunc.scanSection(this.startPos, serverWorld);
+                    var BlockList = BuildUtilities.scanSection(this.startPos, serverWorld);
                     BuildTemplate build = new BuildTemplate(
                         name,race,level,BlockList,income,cooldown,cost
                     );

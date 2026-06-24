@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;

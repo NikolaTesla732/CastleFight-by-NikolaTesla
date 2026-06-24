@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.Network.PacketsC2S;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendBuildS2CPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendBuildsSetS2CPacket;
@@ -41,7 +41,7 @@ public record RequestToDoActionWithTemplatesC2SPacket(BuildTemplateAction templa
         context.server().execute(() ->{
             if (!action.can())return;
             String race = action.getRace(),name = action.getName();
-            BuildFunc.BuildTemplate newBuild = action.getNewBuild(),oldBuild = action.getOldBuild();
+            BuildUtilities.BuildTemplate newBuild = action.getNewBuild(),oldBuild = action.getOldBuild();
             int level = action.getLevel();
             switch (action.getAction()){
                 case REMOVE_RACE -> {
@@ -77,7 +77,7 @@ public record RequestToDoActionWithTemplatesC2SPacket(BuildTemplateAction templa
                     );
                 }
                 case GET_BUILD -> {
-                    BuildFunc.BuildTemplate build;
+                    BuildUtilities.BuildTemplate build;
                     if (newBuild != null) build = TEMPLATES.getBuild(newBuild);
                     else build = TEMPLATES.getBuild(race,name,level);
                     ServerPlayNetworking.send(

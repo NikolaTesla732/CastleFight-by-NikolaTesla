@@ -12,11 +12,10 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
 
 public class GlobalBuildTemplateStorage {
     private final Path filePath;
-    private final Map<String, Map<String,Map<Integer, BuildFunc.BuildTemplate>>> templates = new HashMap<>();
+    private final Map<String, Map<String,Map<Integer, BuildUtilities.BuildTemplate>>> templates = new HashMap<>();
     public GlobalBuildTemplateStorage() {
         Path configDir = FabricLoader.getInstance().getConfigDir().normalize();
         Path modDir = configDir.resolve("custom_castlefight");
@@ -38,12 +37,12 @@ public class GlobalBuildTemplateStorage {
                 templates.clear();
                 NbtCompound allRace = nbt.getCompoundOrEmpty("BuildTemplates");
                 for (String race : allRace.getKeys()){
-                    Map <String,Map<Integer, BuildFunc.BuildTemplate>> races = new HashMap<>();
+                    Map <String,Map<Integer, BuildUtilities.BuildTemplate>> races = new HashMap<>();
                     for (String buildName : allRace.getCompoundOrEmpty(race).getKeys()) {
-                        Map<Integer, BuildFunc.BuildTemplate> buildLevels = new HashMap<>();
+                        Map<Integer, BuildUtilities.BuildTemplate> buildLevels = new HashMap<>();
                         NbtCompound build = allRace.getCompoundOrEmpty(race).getCompoundOrEmpty(buildName);
                         for (String level : build.getKeys()) {
-                            buildLevels.put(Integer.valueOf(level), new BuildFunc.BuildTemplate(build.getCompoundOrEmpty(level), lookup));
+                            buildLevels.put(Integer.valueOf(level), new BuildUtilities.BuildTemplate(build.getCompoundOrEmpty(level), lookup));
                         }
                         races.put(buildName, buildLevels);
                     }
@@ -55,11 +54,11 @@ public class GlobalBuildTemplateStorage {
         }
 
     }
-    public void put(BuildFunc.BuildTemplate build){
+    public void put(BuildUtilities.BuildTemplate build){
         if(!this.templates.containsKey(build.getRace())){
             this.templates.put(build.getRace(),new HashMap<>());
         }
-        Map<String,Map<Integer,BuildFunc.BuildTemplate>> buildTemp = this.templates.get(build.getRace());
+        Map<String,Map<Integer, BuildUtilities.BuildTemplate>> buildTemp = this.templates.get(build.getRace());
         if(!buildTemp.containsKey(build.getName())){
             buildTemp.put(build.getName(),new HashMap<>());
         }
@@ -73,7 +72,7 @@ public class GlobalBuildTemplateStorage {
         }
         save();
     }
-    public boolean contains(BuildFunc.BuildTemplate build){
+    public boolean contains(BuildUtilities.BuildTemplate build){
         return contains(build.getRace(),build.getName(),build.getLevel());
     }
     public boolean contains(String race){
@@ -93,17 +92,17 @@ public class GlobalBuildTemplateStorage {
         };
         return false;
     }
-    public BuildFunc.BuildTemplate getBuild(BuildFunc.BuildTemplate build){
+    public BuildUtilities.BuildTemplate getBuild(BuildUtilities.BuildTemplate build){
         return getBuild(build.getRace(),build.getName(),build.getLevel());
     }
-    public BuildFunc.BuildTemplate getBuild(String race,String name,int level){
+    public BuildUtilities.BuildTemplate getBuild(String race, String name, int level){
         if (contains(race,name,level)) return this.templates.get(race).get(name).get(level);
         return null;
     }
     public Set<String> getRace(){
         return new HashSet<>(this.templates.keySet());
     }
-    public Map<String,Map<Integer, BuildFunc.BuildTemplate>> getRaceBuilds(String race){
+    public Map<String,Map<Integer, BuildUtilities.BuildTemplate>> getRaceBuilds(String race){
         if (contains(race)) return new HashMap<>(this.templates.get(race));
         return new HashMap<>();
     }
@@ -113,7 +112,7 @@ public class GlobalBuildTemplateStorage {
     }
 
 
-    public void removeBuild(BuildFunc.BuildTemplate build){
+    public void removeBuild(BuildUtilities.BuildTemplate build){
         removeBuild(build.getRace(),build.getName(),build.getLevel());
     }
     /**
@@ -133,7 +132,7 @@ public class GlobalBuildTemplateStorage {
 
         save();
     }
-    public void removeAllLevelsBuild(BuildFunc.BuildTemplate build){
+    public void removeAllLevelsBuild(BuildUtilities.BuildTemplate build){
         removeAllLevelsBuild(build.getRace(),build.getName());
     }
     public void removeAllLevelsBuild(String race,String name){

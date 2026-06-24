@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 public class BuildTemplateAction {
     private String race,name;
     private BuildAction action;
-    private BuildFunc.BuildTemplate newBuild,oldBuild;
+    private BuildUtilities.BuildTemplate newBuild,oldBuild;
     private int level;
 
     public enum BuildAction{
@@ -48,10 +48,10 @@ public class BuildTemplateAction {
     public int getLevel() {
         return this.level;
     }
-    public BuildFunc.BuildTemplate getNewBuild() {
+    public BuildUtilities.BuildTemplate getNewBuild() {
         return this.newBuild;
     }
-    public BuildFunc.BuildTemplate getOldBuild() {
+    public BuildUtilities.BuildTemplate getOldBuild() {
         return this.oldBuild;
     }
 
@@ -64,28 +64,28 @@ public class BuildTemplateAction {
         if (buf.readBoolean())newAction.setRace(buf.readString());
         if (buf.readBoolean())newAction.setName(buf.readString());
         if(buf.readBoolean())newAction.action = buf.readEnumConstant(BuildAction.class);
-        if (buf.readBoolean())newAction.setNewBuild(BuildFunc.BuildTemplate.read(buf));
-        if (buf.readBoolean())newAction.setOldBuild(BuildFunc.BuildTemplate.read(buf));
+        if (buf.readBoolean())newAction.setNewBuild(BuildUtilities.BuildTemplate.read(buf));
+        if (buf.readBoolean())newAction.setOldBuild(BuildUtilities.BuildTemplate.read(buf));
         newAction.setLevel(buf.readInt());
         return newAction;
     }
 
     public void setRace(String race){
-        this.race = BuildFunc.BuildTemplate.normalizeName(race);
+        this.race = BuildUtilities.BuildTemplate.normalizeName(race);
     }
     public void setName(String name){
-        this.name = BuildFunc.BuildTemplate.normalizeName(name);
+        this.name = BuildUtilities.BuildTemplate.normalizeName(name);
     }
     public void setLevel(int level){
         this.level = level;
     }
-    public void setNewBuild(BuildFunc.BuildTemplate newBuild) {
+    public void setNewBuild(BuildUtilities.BuildTemplate newBuild) {
         this.newBuild = newBuild;
     }
-    public void setOldBuild(BuildFunc.BuildTemplate oldBuild) {
+    public void setOldBuild(BuildUtilities.BuildTemplate oldBuild) {
         this.oldBuild = oldBuild;
     }
-    public void setBuild(BuildFunc.BuildTemplate build){ this.newBuild = build; }
+    public void setBuild(BuildUtilities.BuildTemplate build){ this.newBuild = build; }
 
     public void setActionPutBuild(){
         this.action = BuildAction.PUT_BUILD;

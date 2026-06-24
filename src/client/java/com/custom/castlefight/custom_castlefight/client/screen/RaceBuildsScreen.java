@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
@@ -26,7 +26,7 @@ public class RaceBuildsScreen extends Screen {
     private GridWidget grid;
     private Set<String> namesSet = new HashSet<>();
     @Nullable
-    private BuildFunc.BuildTemplate build;
+    private BuildUtilities.BuildTemplate build;
     private boolean needGiveBuild = false,canBuildButtons = false;
     public RaceBuildsScreen(String race) {
         super(Text.of("Экран покупки здания"));

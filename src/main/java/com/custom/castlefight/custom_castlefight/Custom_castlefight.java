@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.Construction;
 import com.custom.castlefight.custom_castlefight.CustomFunc.GlobalBuildTemplateStorage;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchesUtilities;
 import com.custom.castlefight.custom_castlefight.Network.CastlefightNetworking;
 import com.custom.castlefight.custom_castlefight.blocks.BuildingBlock;
 import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
@@ -10,6 +11,7 @@ import com.custom.castlefight.custom_castlefight.blocks.blockentity.CastlefightB
 import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -51,6 +53,9 @@ public class Custom_castlefight implements ModInitializer {
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
             TEMPLATES.save();
+        });
+        ServerTickEvents.END_SERVER_TICK.register(minecraftServer -> {
+            MatchesUtilities.MatchManager.getInstance().tickAllMatches();
         });
     }
 }

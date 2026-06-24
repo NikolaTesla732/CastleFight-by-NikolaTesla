@@ -1,8 +1,10 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchesUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tab.GridScreenTab;
@@ -10,11 +12,11 @@ import net.minecraft.client.gui.tab.Tab;
 import net.minecraft.client.gui.tab.TabManager;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TabNavigationWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
@@ -79,7 +81,7 @@ public class AdminScreen extends Screen {
             else modeBuild.setMessage(Text.literal("Режим редактирования" ));
         }
         MainTab() {
-            super(Text.literal("BuildEdit"));
+            super(Text.literal("Шаблоны"));
             this.grid.setColumnSpacing(8);
             this.grid.setRowSpacing(6);
             if (raceSet.isEmpty()){
@@ -123,22 +125,30 @@ public class AdminScreen extends Screen {
         }
 
     }
-    //Вторая вкладка,пока тестовая
+    //Вторая вкладка, пока тестовая
     class Tab2 extends GridScreenTab {
-        private final TextFieldWidget textField;
-        private final TextFieldWidget textField2;
+        private final ButtonWidget buttonOpenMatchManager;
+        private final ButtonWidget buttonStartGame;
 
         Tab2() {
-            super(Text.literal("Tab2"));
+            super(Text.literal("Игра"));
             this.grid.setColumnSpacing(8);
             this.grid.setRowSpacing(6);
-            this.textField = new TextFieldWidget(AdminScreen.this.getTextRenderer(),
-                    120, 20, Text.literal("Test"));
-            this.textField2 = new TextFieldWidget(AdminScreen.this.getTextRenderer(),
-                    120, 20, Text.literal("Test2"));
-            this.grid.add(this.textField, 0, 0);
-            this.grid.add(this.textField2, 1, 0);
+            this.buttonOpenMatchManager = ButtonWidget.builder(
+                    Text.literal("Открыть менеджер матчей"),
+                    (button -> {
+                        MinecraftClient.getInstance().setScreen(new MatchManagerScreen());
+                    })
+            ).build();
+            this.buttonStartGame = ButtonWidget.builder(
+                    Text.literal("Начать новый матч"),
+                    (button -> {
 
+                    })
+            ).build();
+
+            this.grid.add(this.buttonOpenMatchManager,0,0);
+            this.grid.add(this.buttonStartGame,0,1);
         }
     }
 

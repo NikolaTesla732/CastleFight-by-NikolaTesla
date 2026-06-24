@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.blocks;
 
-import com.custom.castlefight.custom_castlefight.CustomFunc.BuildFunc.BuildTemplate;
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
 import com.custom.castlefight.custom_castlefight.CustomFunc.Construction.ConstructionState;
 import com.custom.castlefight.custom_castlefight.CustomFunc.Construction.ConstructionTaskData;
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.ConstructionItem;
