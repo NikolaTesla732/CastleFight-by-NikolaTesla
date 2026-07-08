@@ -1,6 +1,6 @@
 package com.custom.castlefight.custom_castlefight.Network.PacketsC2S;
 
-import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;

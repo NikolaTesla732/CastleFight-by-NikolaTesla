@@ -1,7 +1,7 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToScanC2SPacket;
-import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -13,7 +13,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
-public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
+public class ScanScreenHandled extends HandledScreen<ScanScreen> {
     private BlockPos pos;
     private GridWidget grid;
     private TextFieldWidget nameInput;
@@ -28,11 +28,12 @@ public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
     private TextWidget cdText;
     private TextWidget raceText;
     private TextFieldWidget raceInput;
-    public ScanHandlerScreen(ScanScreen handler, PlayerInventory inventory, Text title) {
+    public ScanScreenHandled(ScanScreen handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
          pos = handler.getBlockPos();
 
     }
+
 
     @Override
     protected void drawForeground(DrawContext context,int mouseX,int mouseY){
@@ -55,7 +56,6 @@ public class ScanHandlerScreen extends HandledScreen<ScanScreen> {
     }
 
     public void OnScanClicked(){
-
         if (!this.nameInput.getText().isBlank() && !this.levelInput.getText().isBlank() &&
                 !this.costInput.getText().isBlank() && !this.incomeInput.getText().isBlank() &&
                 !this.cdInput.getText().isBlank() && !this.raceInput.getText().isBlank()){

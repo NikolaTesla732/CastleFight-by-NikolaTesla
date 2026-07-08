@@ -1,13 +1,19 @@
-package com.custom.castlefight.custom_castlefight.screenhandler;
+package com.custom.castlefight.custom_castlefight.Network.screenhandler;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -18,18 +24,27 @@ public class ScanScreen extends ScreenHandler {
 
     private final BlockPos startPos;
     private final World world;
-    public ScanScreen(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
-        this(syncId, playerInventory, buf.readBlockPos());
-    }
+    public static final Identifier SCANSCREEN_ID = Identifier.of(MOD_ID,"scan_screen");
+    public static ScreenHandlerType<ScanScreen> SCANSCREEN_TYPE;
 
     public ScanScreen(int syncId,PlayerInventory playerInventory, BlockPos blockPos) {
-        super( SCANSCREEN_TYPE,syncId);
+        super(SCANSCREEN_TYPE,syncId);
         this.startPos = blockPos.add(2,0,2);
         this.world = playerInventory.player.getEntityWorld();
     }
 
+    public static void register(){
+        SCANSCREEN_TYPE = Registry.register(
+                Registries.SCREEN_HANDLER,
+                SCANSCREEN_ID,
+                new ExtendedScreenHandlerType<ScanScreen,BlockPos>(
+                        ScanScreen::new,
+                        BlockPos.PACKET_CODEC
+                )
+        );
+    }
     public void OnScanClicked(String name,String race,int level,int cost, int income,int cooldown){
-            if (this.world instanceof ServerWorld serverWorld){
+        if (this.world instanceof ServerWorld serverWorld){
                     var BlockList = BuildUtilities.scanSection(this.startPos, serverWorld);
                     BuildTemplate build = new BuildTemplate(
                         name,race,level,BlockList,income,cooldown,cost
@@ -46,8 +61,6 @@ public class ScanScreen extends ScreenHandler {
     public boolean onButtonClick(PlayerEntity player,int id){
         return super.onButtonClick(player,id);
     }
-
-
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slot) {

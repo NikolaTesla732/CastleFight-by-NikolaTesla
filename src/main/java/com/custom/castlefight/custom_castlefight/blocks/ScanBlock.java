@@ -1,7 +1,7 @@
 package com.custom.castlefight.custom_castlefight.blocks;
 
 import com.custom.castlefight.custom_castlefight.Custom_castlefight;
-import com.custom.castlefight.custom_castlefight.screenhandler.ScanScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -62,7 +62,6 @@ public class ScanBlock extends Block {
                             return pos;
                         }
                     }
-
             );
         }
         return super.onUse(state, world, pos, player, hit);

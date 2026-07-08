@@ -1,155 +1,261 @@
 package com.custom.castlefight.custom_castlefight.client.clientFunc;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ClientTempStorage {
 
-    public ClientTempStorage(){
+    public ClientTempStorage() {
 
     }
-    private String race,name;
+
+    private String race, name;
     private int level;
-    private BuildUtilities.BuildTemplate newBuild,oldBuild;
+    private BuildUtilities.BuildTemplate newBuild, oldBuild;
     private Set<Integer> levelsSet;
     private Set<String> namesSet;
     private Set<String> racesSet;
+    private MatchUtilities.MatchAnswer answer;
     private boolean changes = false;
+    private List<UUID> matches;
+    private Map<MatchUtilities.MatchFormat,Integer> countPlayer;
 
-    public void hasChanges(){
+    
+    public void markDirty(){
         this.changes = true;
     }
-    public void resetChanges(){
+    public List<UUID> getMatches() {
+        resetChanges();
+        return matches;
+    }
+    public boolean hasAnswer(){
+        return answer != null;
+    }
+    public boolean hasMatches(){
+        return matches != null;
+    }
+    public boolean hasCountPlayer() {return countPlayer != null;}
+
+    public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
+        resetChanges();
+        return new HashMap<>(countPlayer);
+    }
+    public Map<MatchUtilities.MatchFormat, Integer> getCountPlayerWithClean() {
+        Map<MatchUtilities.MatchFormat,Integer> countPlayer1 = new HashMap<>(countPlayer);
+        this.countPlayer = null;
+        resetChanges();
+        return countPlayer1;
+    }
+    public void setCountPlayer(Map<MatchUtilities.MatchFormat, Integer> countPlayer1){
+        this.countPlayer = countPlayer1;
+        markDirty();
+    }
+    public List<UUID> getMatchesWithClean() {
+        List<UUID> matches1 = new ArrayList<>(matches);
+        matches = null;
+        resetChanges();
+        return matches1;
+    }
+
+    public void setMatches(List<UUID> matches) {
+        this.matches = matches;
+        markDirty();
+    }
+
+    public void resetChanges() {
         this.changes = false;
     }
-    public void setNewBuild(BuildUtilities.BuildTemplate build) {
-        this.newBuild = build;
-        this.changes = true;
-    }
-    public void setOldBuild(BuildUtilities.BuildTemplate build) {
-        this.oldBuild = build;
-        this.changes = true;
-    }
-    public void setLevel(int level) {
-        this.level = level;
-        this.changes = true;
-    }
-    public void setName(String name) {
-        this.name = name;
-        this.changes = true;
-    }
-    public void setRace(String race) {
-        this.race = race;
-        this.changes = true;
-    }
-    public void setLevelsSet(Set<Integer> levelsSet) {
-        this.levelsSet = levelsSet;
-        this.changes = true;
-    }
-    public void setNamesSet(Set<String> namesSet) {
-        this.namesSet = namesSet;
-        this.changes = true;
-    }
-    public void setRacesSet(Set<String> racesSet) {
-        this.racesSet = racesSet;
-        this.changes = true;
+
+    public MatchUtilities.MatchAnswer getAnswer() {
+        resetChanges();
+        return answer;
     }
 
-    public boolean getChanges(){
+    public void setAnswer(MatchUtilities.MatchAnswer answer) {
+        this.answer = answer;
+        markDirty();
+    }
+
+    public MatchUtilities.MatchAnswer getAnswerWithClean() {
+        MatchUtilities.MatchAnswer matchAnswer = answer;
+        resetChanges();
+        answer = null;
+        return matchAnswer;
+    }
+
+    public void setNewBuild(BuildUtilities.BuildTemplate build) {
+        this.newBuild = build;
+        markDirty();
+    }
+
+    public void setOldBuild(BuildUtilities.BuildTemplate build) {
+        this.oldBuild = build;
+        markDirty();
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+        markDirty();
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        markDirty();
+    }
+
+    public void setRace(String race) {
+        this.race = race;
+        markDirty();
+    }
+
+    public void setLevelsSet(Set<Integer> levelsSet) {
+        this.levelsSet = levelsSet;
+        markDirty();
+    }
+
+    public void setNamesSet(Set<String> namesSet) {
+        this.namesSet = namesSet;
+        markDirty();
+    }
+
+    public void setRacesSet(Set<String> racesSet) {
+        this.racesSet = racesSet;
+        markDirty();
+    }
+
+    public boolean getChanges() {
         return this.changes;
     }
+
     public String getNameWithClean() {
         String nameTemp = name;
         this.name = null;
-        this.changes = false;
+        resetChanges();
         return nameTemp;
     }
+
     public BuildUtilities.BuildTemplate getNewBuildWithClean() {
         BuildUtilities.BuildTemplate build = newBuild;
         this.newBuild = null;
-        this.changes = false;
+        resetChanges();
         return build;
     }
+
     public BuildUtilities.BuildTemplate getOldBuildWithClean() {
         BuildUtilities.BuildTemplate build = oldBuild;
         this.oldBuild = null;
-        this.changes = false;
+        resetChanges();
         return build;
     }
+
     public int getLevelWithClean() {
         int levelTemp = level;
         this.level = 0;
-        this.changes = false;
+        resetChanges();
         return levelTemp;
     }
+
     public String getRaceWithClean() {
         String raceTemp = race;
         this.race = null;
-        this.changes = false;
+        resetChanges();
         return raceTemp;
     }
+
     public Set<Integer> getLevelsSetWithClean() {
         Set<Integer> set = new HashSet<>(levelsSet);
         this.levelsSet.clear();
-        this.changes = false;
+        resetChanges();
         return set;
     }
+
     public Set<String> getNamesSetWithClean() {
         Set<String> set = new HashSet<>(namesSet);
         this.namesSet.clear();
-        this.changes = false;
+        resetChanges();
         return set;
     }
+
     public Set<String> getRacesSetWithClean() {
         Set<String> set = new HashSet<>(racesSet);
         this.racesSet.clear();
-        this.changes = false;
+        resetChanges();
         return set;
     }
 
     public Set<String> getRacesSet() {
-        this.changes = false;
+        resetChanges();
         return new HashSet<>(racesSet);
     }
+
     public Set<String> getNamesSet() {
-        this.changes = false;
+        resetChanges();
         return new HashSet<>(namesSet);
     }
+
     public Set<Integer> getLevelsSet() {
-        this.changes = false;
+        resetChanges();
         return new HashSet<>(levelsSet);
     }
+
     public BuildUtilities.BuildTemplate getOldBuild() {
-        this.changes = false;
+        resetChanges();
         return oldBuild;
     }
+
     public BuildUtilities.BuildTemplate getNewBuild() {
-        this.changes = false;
+        resetChanges();
         return newBuild;
     }
+
     public String getRace() {
-        this.changes = false;
+        resetChanges();
         return race;
     }
+
     public int getLevel() {
-        this.changes = false;
+        resetChanges();
         return level;
     }
+
     public String getName() {
-        this.changes = false;
+        resetChanges();
         return name;
     }
 
-    public boolean hasRace(){ return race != null && !race.isBlank();}
-    public boolean hasName(){ return name != null && !name.isBlank();}
-    public boolean hasLevel(){ return level > 0;}
-    public boolean hasNewBuild(){ return newBuild != null;}
-    public boolean hasOldBuild(){ return oldBuild != null;}
-    public boolean hasRacesSet(){ return racesSet != null && !racesSet.isEmpty();}
-    public boolean hasNamesSet(){ return namesSet != null && !namesSet.isEmpty();}
-    public boolean hasLevelsSet(){ return levelsSet != null && !levelsSet.isEmpty();}
+    public boolean hasRace() {
+        return race != null && !race.isBlank();
+    }
+
+    public boolean hasName() {
+        return name != null && !name.isBlank();
+    }
+
+    public boolean hasLevel() {
+        return level > 0;
+    }
+
+    public boolean hasNewBuild() {
+        return newBuild != null;
+    }
+
+    public boolean hasOldBuild() {
+        return oldBuild != null;
+    }
+
+    public boolean hasRacesSet() {
+        return racesSet != null && !racesSet.isEmpty();
+    }
+
+    public boolean hasNamesSet() {
+        return namesSet != null && !namesSet.isEmpty();
+    }
+
+    public boolean hasLevelsSet() {
+        return levelsSet != null && !levelsSet.isEmpty();
+    }
 
 
 }

@@ -29,14 +29,14 @@ public record RequestToDoActionWithTemplatesC2SPacket(BuildTemplateAction templa
 
     public static void register(){
         PayloadTypeRegistry.playC2S().register(ID,CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(ID,RequestToDoActionWithTemplatesC2SPacket::reciever);
+        ServerPlayNetworking.registerGlobalReceiver(ID,RequestToDoActionWithTemplatesC2SPacket::receiver);
     }
     @Override
     public Id<? extends CustomPayload> getId() {
         return ID;
     }
 
-    public static void reciever(RequestToDoActionWithTemplatesC2SPacket payload, ServerPlayNetworking.Context context){
+    public static void receiver(RequestToDoActionWithTemplatesC2SPacket payload, ServerPlayNetworking.Context context){
         BuildTemplateAction action = payload.templateAction;
         context.server().execute(() ->{
             if (!action.can())return;

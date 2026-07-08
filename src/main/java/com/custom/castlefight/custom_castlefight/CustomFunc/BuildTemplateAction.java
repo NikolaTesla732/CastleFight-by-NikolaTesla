@@ -56,7 +56,7 @@ public class BuildTemplateAction {
     }
 
     public static PacketCodec<RegistryByteBuf,BuildTemplateAction> PACKET_CODEC = PacketCodec.of(
-            ((value, buf) -> value.write(buf)),
+            (BuildTemplateAction::write),
             BuildTemplateAction::read
     );
     public static BuildTemplateAction read(RegistryByteBuf buf){
