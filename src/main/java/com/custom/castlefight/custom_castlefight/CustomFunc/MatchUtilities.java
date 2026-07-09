@@ -407,6 +407,11 @@ public class MatchUtilities {
                         Match match1 = new Match(UUID.randomUUID(),formatTeamSize.get(format));
                         match1.addNTeam(formatTeamCount.get(format));
                         nonActiveMatches.put(format,match1);
+                        LOGGER.info("Матч формата: \""+format.toString()+"\" начался");
+                        for (UUID playerId : match.getAllPlayer()){
+                            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+                            if (player != null) player.closeHandledScreen();
+                        }
                         needUpdateLobby = true;
                     }
                 }
@@ -518,16 +523,26 @@ public class MatchUtilities {
     }
 
     public enum ActionAdmin {
-        ADD_MATCH
+        ADD_MATCH,
+        NEXT_STAGE
     }
 
     public static class AdminMatchAction {
         private final ActionAdmin action;
         private Match match;
+        private MatchUtilities.MatchFormat matchFormat;
         public static PacketCodec<RegistryByteBuf, AdminMatchAction> PACKET_CODEC = PacketCodec.of(
                 AdminMatchAction::write,
                 AdminMatchAction::read
         );
+
+        public MatchFormat getMatchFormat() {
+            return matchFormat;
+        }
+
+        public void setMatchFormat(MatchFormat matchFormat) {
+            this.matchFormat = matchFormat;
+        }
 
         public AdminMatchAction(ActionAdmin actionAdmin) {
             this.action = actionAdmin;
@@ -541,11 +556,14 @@ public class MatchUtilities {
             buf.writeEnumConstant(action);
             buf.writeBoolean(this.match != null);
             if (this.match != null) match.write(buf);
+            buf.writeBoolean(this.matchFormat != null);
+            if ((this.matchFormat != null)) buf.writeEnumConstant(matchFormat);
         }
 
         public static AdminMatchAction read(RegistryByteBuf buf) {
             AdminMatchAction action = new AdminMatchAction(buf.readEnumConstant(ActionAdmin.class));
             if (buf.readBoolean()) action.setMatch(Match.read(buf));
+            if (buf.readBoolean()) action.setMatchFormat(buf.readEnumConstant(MatchFormat.class));
             return action;
         }
 
@@ -561,6 +579,9 @@ public class MatchUtilities {
             switch (action) {
                 case ADD_MATCH -> {
                     return match != null;
+                }
+                case NEXT_STAGE -> {
+                    return matchFormat != null;
                 }
             }
             return false;

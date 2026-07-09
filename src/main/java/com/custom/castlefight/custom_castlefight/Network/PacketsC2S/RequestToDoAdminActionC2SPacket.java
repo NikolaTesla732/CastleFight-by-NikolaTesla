@@ -25,11 +25,17 @@ public record RequestToDoAdminActionC2SPacket(MatchUtilities.AdminMatchAction ad
     }
     public static void receiver(RequestToDoAdminActionC2SPacket payload, ServerPlayNetworking.Context context){
         context.server().execute(()->{
+            MatchUtilities.MatchManager manager = MatchUtilities.MatchManager.getInstance();
             if(!payload.adminMatchAction.can())return;
             switch (payload.adminMatchAction.getAction()){
                 case ADD_MATCH -> {
                     MatchUtilities.MatchManager.getInstance().addMatch(payload.adminMatchAction.getMatch());
                     LOGGER.info(payload.adminMatchAction.getMatch().getId().toString());
+                }
+                case NEXT_STAGE -> {
+                    MatchUtilities.Match match = manager.getNonActiveMatches().get(payload.adminMatchAction.getMatchFormat());
+                    LOGGER.info("Следующая стадия");
+                    match.nextStage();
                 }
             }
         });

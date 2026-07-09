@@ -1,6 +1,7 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
+import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoAdminActionC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoClientMatchActionC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,7 +20,7 @@ import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGE
 
 public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
     private GridWidget grid;
-    private boolean waiting = false;
+    private boolean nextStageMode = false;
     private Map<MatchUtilities.MatchFormat, Integer> playersCount;
 
     public LobbyScreenHandled(LobbyScreen handler, PlayerInventory inventory, Text title) {
@@ -69,12 +70,27 @@ public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
                 Text.literal("Присоединиться"),
                     (button1 -> {
                         LOGGER.info("Нажатие");
+                        if (nextStageMode){
+                            MatchUtilities.AdminMatchAction action = new MatchUtilities.AdminMatchAction(MatchUtilities.ActionAdmin.NEXT_STAGE);
+                            action.setMatchFormat(format);
+                            ClientPlayNetworking.send(new RequestToDoAdminActionC2SPacket(action));
+                            return;
+                        }
                         MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
                         action.setAction(MatchUtilities.ActionPlayer.JOIN_MATCH);
                         action.setFormat(format);
                         ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                     })
             ).size(100,20).build();
+            ButtonWidget modeButton = ButtonWidget.builder(
+                    (nextStageMode) ?Text.literal("Режим прокрутки стадии") : Text.literal("Режим присоединения"),
+                    (button1 -> {
+                        nextStageMode = !nextStageMode;
+                        LOGGER.info((nextStageMode) ?"Режим прокрутки стадии" : "Режим присоединения");
+                        clearAndInit();
+                    })
+            ).build();
+            this.grid.add(modeButton,10,0);
             this.grid.add(modeText, row++, column);
             this.grid.add(countPlayer, row++, column);
             this.grid.add(button,row--,column++);
