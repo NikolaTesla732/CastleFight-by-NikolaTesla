@@ -18,17 +18,51 @@ public class ClientTempStorage {
     private Set<String> namesSet;
     private Set<String> racesSet;
     private MatchUtilities.MatchAnswer answer;
-    private boolean changes = false;
+    private int changes = 0;
     private List<UUID> matches;
     private Map<MatchUtilities.MatchFormat,Integer> countPlayer;
+    private Map<MatchUtilities.TeamColor, List<String>> playersTeam;
+    private MatchUtilities.MatchState matchState;
 
-    
+    public void setMatchState(MatchUtilities.MatchState state){
+        matchState = state;
+        markDirty();
+    }
+    public MatchUtilities.MatchState getMatchState(){
+        resetChanges();
+        return matchState;
+    }
+    public MatchUtilities.MatchState getMatchStateWithClean(){
+        MatchUtilities.MatchState state = matchState;
+        matchState = null;
+        resetChanges();
+        return state;
+    }
+    public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeam() {
+        resetChanges();
+        return playersTeam;
+    }
+    public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeamWithClean() {
+        Map<MatchUtilities.TeamColor, List<String>> players = new HashMap<>(playersTeam);
+        this.playersTeam = null;
+        resetChanges();
+        return players;
+    }
+
+    public void setPlayersTeam(Map<MatchUtilities.TeamColor, List<String>> playersTeam) {
+        this.playersTeam = playersTeam;
+        markDirty();
+    }
+
     public void markDirty(){
-        this.changes = true;
+        this.changes++;
     }
     public List<UUID> getMatches() {
         resetChanges();
         return matches;
+    }
+    public boolean hasPlayersTeam(){
+        return playersTeam != null;
     }
     public boolean hasAnswer(){
         return answer != null;
@@ -41,6 +75,9 @@ public class ClientTempStorage {
     public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
         resetChanges();
         return new HashMap<>(countPlayer);
+    }
+    public boolean hasMatchState(){
+        return matchState != null;
     }
     public Map<MatchUtilities.MatchFormat, Integer> getCountPlayerWithClean() {
         Map<MatchUtilities.MatchFormat,Integer> countPlayer1 = new HashMap<>(countPlayer);
@@ -65,7 +102,8 @@ public class ClientTempStorage {
     }
 
     public void resetChanges() {
-        this.changes = false;
+        this.changes--;
+        if (changes < 0) this.changes = 0;
     }
 
     public MatchUtilities.MatchAnswer getAnswer() {
@@ -125,8 +163,8 @@ public class ClientTempStorage {
         markDirty();
     }
 
-    public boolean getChanges() {
-        return this.changes;
+    public boolean hasChanges() {
+        return this.changes > 0;
     }
 
     public String getNameWithClean() {

@@ -56,7 +56,7 @@ public class AdminScreen extends Screen {
     public void tick() {
         super.tick();
         if (!waiting) return;
-        if (CLIENT_TEMP.getChanges() && CLIENT_TEMP.hasRacesSet()) {
+        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasRacesSet()) {
             setRaces(CLIENT_TEMP.getRacesSetWithClean());
             waiting = false;
         }

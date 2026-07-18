@@ -1,7 +1,6 @@
 package com.custom.castlefight.custom_castlefight.Network.PacketsS2C;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
@@ -15,12 +14,12 @@ import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_I
 public record SendRacesSetS2CPacket(Set<String> racesSet) implements CustomPayload {
     private static Identifier RAW_ID = Identifier.of(MOD_ID,"send_races_set");
     public static CustomPayload.Id<SendRacesSetS2CPacket> ID = new Id<>(RAW_ID);
-    public static PacketCodec<RegistryByteBuf, SendRacesSetS2CPacket> CODEC = PacketCodec.of(
+    public static PacketCodec<RegistryByteBuf, SendRacesSetS2CPacket> PACKET_CODEC = PacketCodec.of(
             SendRacesSetS2CPacket::write,
             SendRacesSetS2CPacket::read
     );
     public static void register(){
-        PayloadTypeRegistry.playS2C().register(ID,CODEC);
+        PayloadTypeRegistry.playS2C().register(ID, PACKET_CODEC);
     }
     public void write(RegistryByteBuf buf){
         buf.writeInt(racesSet.size());

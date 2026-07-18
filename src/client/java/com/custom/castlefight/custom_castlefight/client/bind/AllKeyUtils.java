@@ -11,5 +11,6 @@ public class AllKeyUtils {
         LobbyKey.register();
         RaceKey.register();
         ShopKey.register();
+        MainGameKey.register();
     }
 }

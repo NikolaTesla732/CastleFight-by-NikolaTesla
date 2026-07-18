@@ -3,6 +3,7 @@ package com.custom.castlefight.custom_castlefight.Network;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.*;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
@@ -29,9 +30,12 @@ public class CastlefightNetworking {
         SendMatchAnswerS2CPacket.register();
         SendMatchesS2CPacket.register();
         SendCountPlayerS2CPacket.register();
+        SendTeamsS2CPacket.register();
+        SendMatchStateS2CPacket.register();
     }
     public static void registerScreenHandler(){
         ScanScreen.register();
         LobbyScreen.register();
+        MainGameScreen.register();
     }
 }

@@ -3,8 +3,9 @@ package com.custom.castlefight.custom_castlefight.Network.PacketsC2S;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchAnswerS2CPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchesS2CPacket;
+import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendTeamsS2CPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
-import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -14,7 +15,6 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -47,7 +47,7 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
              MatchUtilities.MatchAction action = payload.matchAction;
              UUID playerId = context.player().getUuid();
              MatchUtilities.MatchManager manager = MatchUtilities.MatchManager.getInstance();
-             LOGGER.info("Пакет пришёл");
+             LOGGER.info("Пакет пришёл, действие: "+action.getAction().toString());
              if (!action.can()) return;
              switch (action.getAction()){
                  case GET_MATCHES -> {
@@ -62,38 +62,32 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
                  }
                  case JOIN_TEAM -> {
                      if (!manager.playerInMatch(playerId)) {
+                         LOGGER.info("Игрок: "+context.player().getName()+" не находится в матче, и не может присоединиться к команде");
                          ServerPlayNetworking.send(context.player(),new SendMatchAnswerS2CPacket(MatchUtilities.MatchAnswer.NOT_FOUND_MATCH));
                          return;
                      }
                      MatchUtilities.Match match = manager.getMatch(manager.getPlayerMatch(playerId));
                      MatchUtilities.MatchAnswer answer = match.addPlayerToTeam(playerId,payload.matchAction.getTeam());
+                     ServerPlayNetworking.send(context.player(),new SendMatchAnswerS2CPacket(answer));
+                     LOGGER.info("Ответ сервера: "+answer.toString());
+                 }
+                 case OPEN_MAIN -> {
+                    if (!manager.playerInMatch(playerId)) return;
+                    context.player().openHandledScreen(MainGameScreen.getFactory());
                  }
                  case OPEN_LOBBY -> {
                      if (!manager.playerCanViewLobby(playerId)) return;
-                     context.player().openHandledScreen(new ExtendedScreenHandlerFactory<Map<MatchUtilities.MatchFormat, Integer>>() {
-                         @Override
-                         public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-                             return new LobbyScreen(syncId, playerInventory);
-                         }
-
-                         @Override
-                         public Text getDisplayName() {
-                             return Text.literal("Лобби");
-                         }
-
-                         @Override
-                         public Map<MatchUtilities.MatchFormat, Integer> getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
-                             Map<MatchUtilities.MatchFormat, Integer> playerCount = new HashMap<>();
-                             for (MatchUtilities.MatchFormat format : MatchUtilities.MatchFormat.values()) {
-                                 playerCount.put(format,
-                                         MatchUtilities.MatchManager.getInstance().getNonActiveMatches().get(format).getAllPlayer().size()
-                                 );
-                             }
-                             return playerCount;
-                         }
-                     }
-                     );
+                     context.player().openHandledScreen(LobbyScreen.getFactory());
                  }
+                 case GET_TEAMS -> {
+                     List<MatchUtilities.Team> teamList = manager.getMatch(manager.getPlayerMatch(context.player().getUuid())).getTeams();
+                     Map<MatchUtilities.TeamColor,List<String>> teamMap = new HashMap<>();
+                     for (MatchUtilities.Team team: teamList){
+                         teamMap.put(team.getColor(),team.getPlayersName(context.server()));
+                     }
+                     ServerPlayNetworking.send(context.player(),new SendTeamsS2CPacket(teamMap));
+                 }
+
                  case BAN_RACE -> {}
                  case CHOOSE_RACE -> {}
              }

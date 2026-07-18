@@ -2,11 +2,15 @@ package com.custom.castlefight.custom_castlefight.CustomFunc;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendCountPlayerS2CPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchAnswerS2CPacket;
+import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchStateS2CPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +29,7 @@ public class MatchUtilities {
         private List<Team> teams = new ArrayList<>();
         private List<UUID> playersInMatch = new ArrayList<>();
         private Set<String> races;
+        private boolean needUpdateScreen = false;
 
         public Match(UUID id, int maxPlayerInTeam) {
             this.id = id;
@@ -90,26 +95,31 @@ public class MatchUtilities {
                     LOGGER.info(matchState.toString());
                 }
                 case START_GAME -> {
+                    needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_TEAM;
                     this.matchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case CHOICE_TEAM -> {
+                    needUpdateScreen = true;
                     this.matchState = MatchState.BAN_RACE;
                     this.matchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case BAN_RACE -> {
+                    needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_RACE;
                     this.matchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case CHOICE_RACE -> {
+                    needUpdateScreen = true;
                     this.matchState = MatchState.PLAYING;
                     this.matchTime = 72000;
                     LOGGER.info(matchState.toString());
                 }
                 case PLAYING -> {
+                    needUpdateScreen = true;
                     this.matchState = MatchState.END_GAME;
                     LOGGER.info(matchState.toString());
                 }
@@ -128,6 +138,8 @@ public class MatchUtilities {
                     if (hasPlayerInTeam(player)) removePlayerFromTeam(player);
                     if (team.countPlayers() >= this.maxPlayerInTeam) return MatchAnswer.FULL_TEAM;
                     team.addPlayer(player);
+                    removePlayer(player);
+                    needUpdateScreen = true;
                     return MatchAnswer.NONE;
                 }
             }
@@ -147,12 +159,14 @@ public class MatchUtilities {
 
         public void removePlayerFromTeam(UUID player) {
             for (Team team : this.teams) {
-                if (team.hasPlayer(player)) team.removePlayer(player);
+                if (team.hasPlayer(player)) {
+                    team.removePlayer(player);
+                    needUpdateScreen = true;
+                }
             }
         }
 
-        public void removePlayer(UUID player) {
-            removePlayerFromTeam(player);
+        private void removePlayer(UUID player) {
             playersInMatch.remove(player);
         }
 
@@ -166,6 +180,8 @@ public class MatchUtilities {
             if (matchState != MatchState.START_GAME) return MatchAnswer.INVALID_STAGE;
             for (TeamColor teamColor : TeamColor.values()){
                 this.teams.add(new Team(teamColor));
+                n--;
+                if (n<=0) break;
             }
             return MatchAnswer.NONE;
         }
@@ -258,8 +274,19 @@ public class MatchUtilities {
         public void setTeams(List<Team> teams) {
             this.teams = teams;
         }
-
-        protected void tick() {
+        private void updateMainScreenForAll(MinecraftServer server){
+            PlayerManager playerManager = server.getPlayerManager();
+            for (UUID playerId : getAllPlayer()){
+                if (playerManager.getPlayer(playerId) == null) continue;
+                ServerPlayerEntity player = playerManager.getPlayer(playerId);
+                if (player.currentScreenHandler instanceof MainGameScreen gameScreen){
+                    gameScreen.state = matchState;
+                    ServerPlayNetworking.send(player,new SendMatchStateS2CPacket(matchState));
+                    ServerPlayNetworking.send(player,new SendMatchAnswerS2CPacket(MatchAnswer.NEED_UPDATE));
+                }
+            }
+        }
+        protected void tick(MinecraftServer server) {
             switch (this.matchState) {
                 case SETTINGS -> {
                 }
@@ -268,9 +295,10 @@ public class MatchUtilities {
                 case MatchState.CHOICE_TEAM -> {
                     this.matchTime--;
                     if (matchTime <= 0) {
+                        needUpdateScreen = true;
                         if (!playersInMatch.isEmpty()) {
                             for (Team team : teams) {
-                                while (team.countPlayers() < maxPlayerInTeam) {
+                                while (team.countPlayers() < maxPlayerInTeam && !playersInMatch.isEmpty()) {
                                     team.addPlayer(playersInMatch.removeFirst());
                                 }
                             }
@@ -300,6 +328,10 @@ public class MatchUtilities {
                 }
 
             }
+            if (needUpdateScreen) {
+                updateMainScreenForAll(server);
+                needUpdateScreen = false;
+            }
         }
     }
     public static enum MatchAnswer {
@@ -311,7 +343,8 @@ public class MatchUtilities {
         NOT_FOUND_TEAM,
         INVALID_RACE,
         NOT_FOUND_MATCH,
-        ALREADY_HAS_TEAM
+        ALREADY_HAS_TEAM,
+        NEED_UPDATE
 
     }
 
@@ -397,10 +430,16 @@ public class MatchUtilities {
         }
         public void tick(MinecraftServer server) {
             for (Match match : this.matches.values()) {
-                match.tick();
+                match.tick(server);
             }
             boolean needUpdateLobby = false;
             for (MatchFormat format : nonActiveMatches.keySet()){
+                if (nonActiveMatches.get(format) == null) {
+                    Match match1 = new Match(UUID.randomUUID(),formatTeamSize.get(format));
+                    match1.addNTeam(formatTeamCount.get(format));
+                    nonActiveMatches.put(format,match1);
+                    continue;
+                }
                 if (nonActiveMatches.get(format) instanceof Match match){
                     if (match.matchState != MatchState.SETTINGS && match.matchState != MatchState.START_GAME){
                         matches.put(match.getId(),match);
@@ -451,6 +490,7 @@ public class MatchUtilities {
     }
 
     public enum MatchState {
+        NOT_ACTIVE,
         SETTINGS,
         CHOICE_TEAM,
         BAN_RACE,
@@ -517,6 +557,15 @@ public class MatchUtilities {
             this.players.remove(player);
         }
 
+        public List<String> getPlayersName(MinecraftServer server){
+            List<String> playersList = new ArrayList<>();
+            for (UUID playerId : players){
+                playersList.add(server.getPlayerManager().getPlayer(playerId).getName().toString());
+            }
+            if (!playersList.isEmpty()) LOGGER.info(playersList.getFirst());
+            return playersList;
+
+        }
         public List<UUID> getPlayers() {
             return players;
         }
@@ -610,13 +659,16 @@ public class MatchUtilities {
             MatchFormat.FourVsFour,"Стандартный матч 4x4"
     );
     public enum ActionPlayer {
+        NONE,
         JOIN_MATCH,
         JOIN_TEAM,
         BAN_RACE,
         CHOOSE_RACE,
         GET_TEAMS,
         GET_MATCHES,
-        OPEN_LOBBY
+        OPEN_LOBBY,
+        OPEN_MAIN
+
     }
 
     public static class MatchAction {
@@ -659,7 +711,7 @@ public class MatchUtilities {
                 case JOIN_MATCH -> {
                     return this.format != null;
                 }
-                case GET_MATCHES,OPEN_LOBBY -> {
+                case GET_TEAMS,GET_MATCHES,OPEN_LOBBY,OPEN_MAIN-> {
                     return true;
                 }
             }

@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.Network.screenhandler;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.MapUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,6 +15,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +32,16 @@ import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_I
 public class LobbyScreen extends ScreenHandler {
     public static final Identifier LOBBYSCREEN_ID = Identifier.of(MOD_ID,"lobby_screen");
     public static ScreenHandlerType<LobbyScreen> LOBBYSCREEN_TYPE;
+    public static final PacketCodec<RegistryByteBuf,Map<MatchUtilities.MatchFormat,Integer>> PACKET_CODEC = PacketCodec.of(
+            ((value, buf) -> {
+        buf.writeMap((Map<MatchUtilities.MatchFormat,Integer>)value,(buf1, value1) -> {buf1.writeEnumConstant((MatchUtilities.MatchFormat) value1);},
+                (buf1,value1) -> {buf1.writeInt((int)value1);});
+    }),
+            (buf -> {
+        return buf.readMap((buf1 -> buf1.readEnumConstant(MatchUtilities.MatchFormat.class)),
+                PacketByteBuf::readInt);
+    })
+            );
     public Map<MatchUtilities.MatchFormat,Integer> playerCount = new HashMap<>();
 
     public LobbyScreen(int syncId, PlayerInventory playerInventory) {
@@ -44,23 +57,37 @@ public class LobbyScreen extends ScreenHandler {
         super(LOBBYSCREEN_TYPE,syncId);
         this.playerCount = players;
     }
+    public static ExtendedScreenHandlerFactory<Map<MatchUtilities.MatchFormat, Integer>> getFactory(){
+        return new ExtendedScreenHandlerFactory<Map<MatchUtilities.MatchFormat, Integer>>() {
+            @Override
+            public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+                return new LobbyScreen(syncId, playerInventory);
+            }
 
+            @Override
+            public Text getDisplayName() {
+                return Text.literal("Лобби");
+            }
+
+            @Override
+            public Map<MatchUtilities.MatchFormat, Integer> getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
+                Map<MatchUtilities.MatchFormat, Integer> playerCount = new HashMap<>();
+                for (MatchUtilities.MatchFormat format : MatchUtilities.MatchFormat.values()) {
+                    playerCount.put(format,
+                            MatchUtilities.MatchManager.getInstance().getNonActiveMatches().get(format).getAllPlayer().size()
+                    );
+                }
+                return playerCount;
+            }
+        };
+    }
     public static void register(){
         LOBBYSCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,
                 LOBBYSCREEN_ID,
                 new ExtendedScreenHandlerType<LobbyScreen,Map<MatchUtilities.MatchFormat,Integer>>(
                         LobbyScreen::new,
-                        PacketCodec.of(
-                                ((value, buf) -> {
-                                    buf.writeMap((Map<MatchUtilities.MatchFormat,Integer>)value,(buf1, value1) -> {buf1.writeEnumConstant((MatchUtilities.MatchFormat) value1);},
-                                            (buf1,value1) -> {buf1.writeInt((int)value1);});
-                                }),
-                                (buf -> {
-                                    return buf.readMap((buf1 -> buf1.readEnumConstant(MatchUtilities.MatchFormat.class)),
-                                            PacketByteBuf::readInt);
-                                })
-                        )
+                        PACKET_CODEC
                 )
         );
     }

@@ -36,7 +36,7 @@ public class AdminBuildsScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (CLIENT_TEMP.getChanges() && CLIENT_TEMP.hasNamesSet()){
+        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasNamesSet()){
             this.raceBuilds = CLIENT_TEMP.getNamesSetWithClean();
             clearAndInit();
         }

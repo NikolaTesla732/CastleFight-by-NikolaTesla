@@ -44,7 +44,7 @@ public class AdminLevelScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (CLIENT_TEMP.getChanges()) {
+        if (CLIENT_TEMP.hasChanges()) {
             if (CLIENT_TEMP.hasLevelsSet()) this.levelsSet = CLIENT_TEMP.getLevelsSetWithClean();
             if (CLIENT_TEMP.hasNewBuild()) {
                 this.needShowBuild = true;

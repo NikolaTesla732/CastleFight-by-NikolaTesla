@@ -36,7 +36,7 @@ public class RaceBuildsScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (CLIENT_TEMP.getChanges() ){
+        if (CLIENT_TEMP.hasChanges() ){
             if (CLIENT_TEMP.hasNamesSet()) this.namesSet = CLIENT_TEMP.getNamesSetWithClean();
             if (CLIENT_TEMP.hasNewBuild()) {
                 this.needGiveBuild = true;

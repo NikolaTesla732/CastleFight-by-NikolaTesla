@@ -9,25 +9,26 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
-public class LobbyKey {
-    public static KeyBinding OPEN_LOBBY_SCREEN;
+public class MainGameKey {
+    public static KeyBinding OPEN_MAIN_GAME_SCREEN;
+
     public static void register(){
-        OPEN_LOBBY_SCREEN = KeyBindingHelper.registerKeyBinding(
+        OPEN_MAIN_GAME_SCREEN = KeyBindingHelper.registerKeyBinding(
             new KeyBinding(
-                "key.castlefight.open_lobby",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_Y,
-                AllKeyUtils.category
+                    "key.castlefight.open_main_game",
+                    InputUtil.Type.KEYSYM,
+                    GLFW.GLFW_KEY_P,
+                    AllKeyUtils.category
             )
         );
-        ClientTickEvents.END_CLIENT_TICK.register(minecraftClient -> {
-            while (OPEN_LOBBY_SCREEN.wasPressed()){
+        ClientTickEvents.END_CLIENT_TICK.register((minecraftClient -> {
+            while (OPEN_MAIN_GAME_SCREEN.wasPressed()){
                 if (minecraftClient.player != null && minecraftClient.currentScreen == null){
                     MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
-                    action.setAction(MatchUtilities.ActionPlayer.OPEN_LOBBY);
+                    action.setAction(MatchUtilities.ActionPlayer.OPEN_MAIN);
                     ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                 }
             }
-        });
+        }));
     }
 }

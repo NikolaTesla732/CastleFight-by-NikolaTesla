@@ -28,7 +28,7 @@ public class MatchManagerScreen extends Screen {
     public void tick() {
         super.tick();
         if (!waiting) return;
-        if (CLIENT_TEMP.getChanges() && CLIENT_TEMP.hasMatches()) {
+        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasMatches()) {
             setMatches(CLIENT_TEMP.getMatchesWithClean());
             waiting = false;
         }
@@ -65,6 +65,7 @@ public class MatchManagerScreen extends Screen {
                 row++;
             }
         }
+
         ButtonWidget returnButton = ButtonWidget.builder(Text.literal("Назад"),(button) -> {
             client.setScreen(new AdminScreen(Text.literal("Admin")));
                 }).size(100,20).build();

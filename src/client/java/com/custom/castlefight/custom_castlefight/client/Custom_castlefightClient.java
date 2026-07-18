@@ -5,7 +5,7 @@ import com.custom.castlefight.custom_castlefight.client.bind.AllKeyUtils;
 import com.custom.castlefight.custom_castlefight.client.clientFunc.ClientTempStorage;
 import com.custom.castlefight.custom_castlefight.client.render.Draw;
 import com.custom.castlefight.custom_castlefight.client.render.blockModel.BuildingBlockModel;
-import com.custom.castlefight.custom_castlefight.client.screen.HandledRegister;
+import com.custom.castlefight.custom_castlefight.client.screen.handled.HandledRegister;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;

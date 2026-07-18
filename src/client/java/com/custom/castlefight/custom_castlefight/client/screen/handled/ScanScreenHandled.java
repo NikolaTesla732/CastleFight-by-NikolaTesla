@@ -1,4 +1,4 @@
-package com.custom.castlefight.custom_castlefight.client.screen;
+package com.custom.castlefight.custom_castlefight.client.screen.handled;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToScanC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;

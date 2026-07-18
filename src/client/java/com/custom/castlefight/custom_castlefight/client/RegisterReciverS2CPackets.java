@@ -2,9 +2,7 @@ package com.custom.castlefight.custom_castlefight.client;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.network.packet.CustomPayload;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
 public class RegisterReciverS2CPackets {
@@ -16,6 +14,26 @@ public class RegisterReciverS2CPackets {
         registerLevelsSetReceiver();
         registerMatchesReceiver();
         registerMatchAnswerReceiver();
+        registerTeamsReceiver();
+        registerMatchStateReceiver();
+    }
+    public static void registerMatchStateReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(
+                SendMatchStateS2CPacket.ID,
+                ((payload,context) -> {
+                    context.client().execute(() -> {
+                        CLIENT_TEMP.setMatchState(payload.matchState());
+                    });
+                })
+        );
+    }
+    public static void registerTeamsReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(SendTeamsS2CPacket.ID,
+                ((payload, context) -> {
+                    context.client().execute(()->{
+                        CLIENT_TEMP.setPlayersTeam(payload.teams());
+                    });
+                }));
     }
     public static void registerPlayerCountReceiver(){
         ClientPlayNetworking.registerGlobalReceiver(SendCountPlayerS2CPacket.ID,
@@ -58,7 +76,6 @@ public class RegisterReciverS2CPackets {
         ClientPlayNetworking.registerGlobalReceiver(SendLevelsSetS2CPacket.ID,
                 (payload, context) -> {
                     context.client().execute(() -> {
-                        LOGGER.info("данные пришли");
                         CLIENT_TEMP.setLevelsSet(payload.levelsSet());
                     });
                 });

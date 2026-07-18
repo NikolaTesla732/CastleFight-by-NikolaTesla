@@ -1,4 +1,4 @@
-package com.custom.castlefight.custom_castlefight.client.screen;
+package com.custom.castlefight.custom_castlefight.client.screen.handled;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoAdminActionC2SPacket;
@@ -31,7 +31,7 @@ public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
     @Override
     protected void handledScreenTick() {
         super.handledScreenTick();
-        if (!CLIENT_TEMP.getChanges()) return;
+        if (!CLIENT_TEMP.hasChanges()) return;
         if ( CLIENT_TEMP.hasAnswer()) {
             LOGGER.info(String.valueOf(CLIENT_TEMP.getAnswerWithClean()));
         }
