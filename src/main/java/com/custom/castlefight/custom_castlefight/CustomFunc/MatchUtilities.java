@@ -26,6 +26,7 @@ public class MatchUtilities {
         private final int maxPlayerInTeam;
         private MatchState matchState;
         private int matchTime = 0;
+        private int absoluteMatchTime = 0;
         private List<Team> teams = new ArrayList<>();
         private List<UUID> playersInMatch = new ArrayList<>();
         private Set<String> races;
@@ -98,24 +99,28 @@ public class MatchUtilities {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_TEAM;
                     this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case CHOICE_TEAM -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.BAN_RACE;
                     this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case BAN_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_RACE;
                     this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                     LOGGER.info(matchState.toString());
                 }
                 case CHOICE_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.PLAYING;
                     this.matchTime = 72000;
+                    this.absoluteMatchTime = 72000;
                     LOGGER.info(matchState.toString());
                 }
                 case PLAYING -> {
@@ -139,8 +144,7 @@ public class MatchUtilities {
                     if (team.countPlayers() >= this.maxPlayerInTeam) return MatchAnswer.FULL_TEAM;
                     team.addPlayer(player);
                     removePlayer(player);
-                    needUpdateScreen = true;
-                    return MatchAnswer.NONE;
+                    return MatchAnswer.NEED_UPDATE;
                 }
             }
             return MatchAnswer.NOT_FOUND_TEAM;
@@ -161,7 +165,6 @@ public class MatchUtilities {
             for (Team team : this.teams) {
                 if (team.hasPlayer(player)) {
                     team.removePlayer(player);
-                    needUpdateScreen = true;
                 }
             }
         }
@@ -280,12 +283,16 @@ public class MatchUtilities {
                 if (playerManager.getPlayer(playerId) == null) continue;
                 ServerPlayerEntity player = playerManager.getPlayer(playerId);
                 if (player.currentScreenHandler instanceof MainGameScreen gameScreen){
-                    gameScreen.state = matchState;
                     ServerPlayNetworking.send(player,new SendMatchStateS2CPacket(matchState));
                     ServerPlayNetworking.send(player,new SendMatchAnswerS2CPacket(MatchAnswer.NEED_UPDATE));
                 }
             }
         }
+
+        public int getAbsoluteMatchTime() {
+            return absoluteMatchTime;
+        }
+
         protected void tick(MinecraftServer server) {
             switch (this.matchState) {
                 case SETTINGS -> {

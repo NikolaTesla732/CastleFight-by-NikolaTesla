@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.client.render;
 
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.ConstructionItem;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -42,16 +43,16 @@ public class Draw {
                              double x2, double y2, double z2,
                              float r, float g, float b, float a) {
 
-        vc.vertex(mat, (float)x1, (float)y1, (float)z1)
+        vc.vertex(mat, (float) x1, (float) y1, (float) z1)
                 .color(r, g, b, a)
                 .normal(0, 0, 0);
 
-        vc.vertex(mat, (float)x2, (float)y2, (float)z2)
+        vc.vertex(mat, (float) x2, (float) y2, (float) z2)
                 .color(r, g, b, a)
                 .normal(0, 0, 0);
     }
 
-    public static void SelectBlock(WorldRenderContext context){
+    public static void SelectBlock(WorldRenderContext context) {
         MatrixStack matrices = context.matrices();
         ClientWorld world = context.gameRenderer().getClient().world;
         Camera camera = context.gameRenderer().getCamera();
@@ -59,24 +60,29 @@ public class Draw {
         double camX = camera.getPos().x;
         double camY = camera.getPos().y;
         double camZ = camera.getPos().z;
-        HitResult PLAYERVIEW = player.raycast(8,1.0f,false);
+        HitResult PLAYERVIEW = player.raycast(8, 1.0f, false);
         EquipmentSlot slot = player.getActiveHand().getEquipmentSlot();
-        if (slot == EquipmentSlot.MAINHAND){
+        if (slot == EquipmentSlot.MAINHAND) {
 
         }
-        if ( PLAYERVIEW.getType() == HitResult.Type.BLOCK && player.getMainHandStack().getItem() instanceof ConstructionItem){
-            BlockPos pos = ((BlockHitResult) PLAYERVIEW).getBlockPos().add(0,1,0);
+        if (PLAYERVIEW.getType() == HitResult.Type.BLOCK && player.getMainHandStack().getItem() instanceof ConstructionItem) {
+            BlockPos pos = ((BlockHitResult) PLAYERVIEW).getBlockPos().add(0, 1, 0);
             Box box = new Box(pos);
-            box = box.stretch(1,4,1);
-            box = box.stretch(-1,0,-1);
-            Box shifted = box.offset(-camX,-camY,-camZ);
+            box = box.stretch(1, 4, 1);
+            box = box.stretch(-1, 0, -1);
+            Box shifted = box.offset(-camX, -camY, -camZ);
 
             VertexConsumerProvider consumers = context.consumers();
             VertexConsumer vc = consumers.getBuffer(RenderLayer.getLines());
 
-            drawBox(matrices,vc,shifted,0f,1f,0f,1f);
+            drawBox(matrices, vc, shifted, 0f, 1f, 0f, 1f);
 
         }
+    }
+
+    public static void drawSimpleProgressBar(DrawContext context, int x, int y, int width, int height, float progress) {
+        context.fill(x, y, x + width, y + height, 0xFF525252);
+        context.fill(x, y, x + (int) (width * progress), y + height, 0xFF0000FF);
     }
 
 }

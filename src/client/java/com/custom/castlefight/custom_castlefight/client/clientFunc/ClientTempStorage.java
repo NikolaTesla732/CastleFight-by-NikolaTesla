@@ -72,6 +72,10 @@ public class ClientTempStorage {
     }
     public boolean hasCountPlayer() {return countPlayer != null;}
 
+    public int getChanges() {
+        return changes;
+    }
+
     public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
         resetChanges();
         return new HashMap<>(countPlayer);

@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -24,38 +25,42 @@ public class MainGameScreen extends ScreenHandler {
 
     public static final Identifier MAINGAMESCREEN_ID = Identifier.of(MOD_ID,"main_game_screen");
     public static ScreenHandlerType<MainGameScreen> MAINGAMESCREEN_TYPE;
-    public MatchUtilities.MatchState state;
+    public MainGameData data;
+    public static record MainGameData(MatchUtilities.MatchState state,Integer timer,Integer absoluteTimer){
+        static PacketCodec<RegistryByteBuf,MainGameData> PACKET_CODEC = PacketCodec.of(
+                (((value, buf) -> {
+                    buf.writeEnumConstant(value.state());
+                    buf.writeInt(value.timer());
+                    buf.writeInt(value.absoluteTimer);
+                })),
+                ((buf -> new MainGameData(buf.readEnumConstant(MatchUtilities.MatchState.class), buf.readInt(),buf.readInt())))
+        );
+    }
     public static void register(){
         MAINGAMESCREEN_TYPE = Registry.register(
                 Registries.SCREEN_HANDLER,
                 MAINGAMESCREEN_ID,
                 new ExtendedScreenHandlerType<>(
                         MainGameScreen::new,
-                        PacketCodec.of(
-                                ((value, buf) -> buf.writeEnumConstant(value)), (buf -> buf.readEnumConstant(MatchUtilities.MatchState.class))
-                        )
+                        MainGameData.PACKET_CODEC
                 )
         );
     }
 
     public MainGameScreen(int syncId, PlayerInventory inventory) {
         super(MAINGAMESCREEN_TYPE, syncId);
-        UUID matchId = MatchUtilities.MatchManager.getInstance().getPlayerMatch(inventory.player.getUuid());
-        state = MatchUtilities.MatchManager.getInstance().getMatch(matchId).getMatchState();
-        if (state == null){
-            state = MatchUtilities.MatchState.NOT_ACTIVE;
-        }
-    }
-    public MainGameScreen(int syncId, PlayerInventory inventory,MatchUtilities.MatchState matchState) {
-        super(MAINGAMESCREEN_TYPE, syncId);
-        state = matchState;
-        if (state == null){
-            state = MatchUtilities.MatchState.NOT_ACTIVE;
-        }
-    }
-    public static ExtendedScreenHandlerFactory<MatchUtilities.MatchState> getFactory(){
         MatchUtilities.MatchManager manager = MatchUtilities.MatchManager.getInstance();
-        return new ExtendedScreenHandlerFactory<MatchUtilities.MatchState>() {
+        UUID matchId = manager.getPlayerMatch(inventory.player.getUuid());
+        MatchUtilities.Match match = manager.getMatch(matchId);
+        data = new MainGameData(match.getMatchState(),match.getMatchTime(),match.getAbsoluteMatchTime());
+    }
+    public MainGameScreen(int syncId, PlayerInventory inventory,MainGameData data1) {
+        super(MAINGAMESCREEN_TYPE, syncId);
+        data = data1;
+    }
+    public static ExtendedScreenHandlerFactory<MainGameData> getFactory(){
+        MatchUtilities.MatchManager manager = MatchUtilities.MatchManager.getInstance();
+        return new ExtendedScreenHandlerFactory<MainGameData>() {
             @Override
             public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
                 return new MainGameScreen(syncId,playerInventory);
@@ -67,8 +72,12 @@ public class MainGameScreen extends ScreenHandler {
             }
 
             @Override
-            public MatchUtilities.MatchState getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
-                return manager.getMatch(manager.getPlayerMatch(serverPlayerEntity.getUuid())).getMatchState();
+            public MainGameData getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
+                MatchUtilities.Match match = manager.getMatch(manager.getPlayerMatch(serverPlayerEntity.getUuid()));
+                return new MainGameData(match.getMatchState(),
+                                        match.getMatchTime(),
+                                        match.getAbsoluteMatchTime()
+                );
             }
         };
     }

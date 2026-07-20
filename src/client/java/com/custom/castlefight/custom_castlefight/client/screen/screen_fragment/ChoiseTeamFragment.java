@@ -25,14 +25,14 @@ public class ChoiseTeamFragment implements IScreenFragment{
         GridWidget grid = new GridWidget();
         if (screen instanceof MainGameScreenHandled mainScreen){
             int column = 0;
-            int row = 5;
+            int row = 0;
             for (MatchUtilities.TeamColor color: teamList.keySet()){
                 StringBuilder teamToRender = new StringBuilder();
                 for (String player : teamList.get(color)){
                     teamToRender.append(player);
                     teamToRender.append('\n');
                 }
-                MultilineTextWidget teamText = new MultilineTextWidget(Text.literal(teamToRender.toString()),screen.getTextRenderer());
+                MultilineTextWidget teamText = new MultilineTextWidget(Text.literal(teamToRender.toString()),screen.getTextRenderer()).setMaxWidth(150);
                 grid.add(teamText,row++,column);
                 grid.add(ButtonWidget.builder(
                         Text.literal(color.toString()),
@@ -43,7 +43,8 @@ public class ChoiseTeamFragment implements IScreenFragment{
                             mainScreen.waitings = MatchUtilities.ActionPlayer.NONE;
                             ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                     })
-                ).size(80,20).build(),row--,column++);
+                ).size(120,20).build(),row--,column,grid.copyPositioner().alignHorizontalCenter());
+                column+=2;
             }
             return grid;
         }
