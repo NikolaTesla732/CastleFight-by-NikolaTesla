@@ -1,6 +1,8 @@
 package com.custom.castlefight.custom_castlefight.client.screen.handled;
 
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToScanC2SPacket;
+import com.custom.castlefight.custom_castlefight.Network.screenhandler.CastleFightBaseScreenHandler;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.ScanScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
@@ -13,7 +15,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
-public class ScanScreenHandled extends HandledScreen<ScanScreen> {
+public class ScanScreenHandled extends CastleFightBaseScreenHandled<ScanScreen> {
     private BlockPos pos;
     private GridWidget grid;
     private TextFieldWidget nameInput;
@@ -34,18 +36,6 @@ public class ScanScreenHandled extends HandledScreen<ScanScreen> {
 
     }
 
-
-    @Override
-    protected void drawForeground(DrawContext context,int mouseX,int mouseY){
-        context.drawText(
-                this.textRenderer,
-                this.title,
-                this.width/2,
-                this.height-30,
-                0x404040,
-                false
-        );
-    }
     public static boolean isInt(String text) {
         try {
             Integer.parseInt(text);
@@ -122,11 +112,8 @@ public class ScanScreenHandled extends HandledScreen<ScanScreen> {
         this.grid.forEachChild(this::addDrawableChild);
     }
 
-
-
     @Override
-    protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
-        context.fill(0,0,this.width,this.height, 0x88000000);
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
     }
 
 

@@ -144,7 +144,7 @@ public class MatchUtilities {
                     if (team.countPlayers() >= this.maxPlayerInTeam) return MatchAnswer.FULL_TEAM;
                     team.addPlayer(player);
                     removePlayer(player);
-                    return MatchAnswer.NEED_UPDATE;
+                    return MatchAnswer.NONE;
                 }
             }
             return MatchAnswer.NOT_FOUND_TEAM;
@@ -495,7 +495,21 @@ public class MatchUtilities {
             return matches;
         }
     }
-
+    public static enum MatchData{
+        RACE,
+        NAME,
+        LEVEL,
+        NEW_BUILD,
+        OLD_BUILD,
+        LEVELS_SET,
+        NAMES_SET,
+        RACES_SET,
+        ANSWER,
+        MATCHES,
+        COUNT_PLAYER,
+        PLAYERS_TEAM,
+        MATCH_STATE
+    }
     public enum MatchState {
         NOT_ACTIVE,
         SETTINGS,
@@ -567,7 +581,7 @@ public class MatchUtilities {
         public List<String> getPlayersName(MinecraftServer server){
             List<String> playersList = new ArrayList<>();
             for (UUID playerId : players){
-                playersList.add(server.getPlayerManager().getPlayer(playerId).getName().toString());
+                playersList.add(server.getPlayerManager().getPlayer(playerId).getName().getString());
             }
             if (!playersList.isEmpty()) LOGGER.info(playersList.getFirst());
             return playersList;

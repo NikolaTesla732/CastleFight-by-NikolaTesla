@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities.BuildTemplate;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screen.Screen;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
-public class AdminLevelScreen extends Screen {
+public class AdminLevelScreen extends CastleFightBaseScreen {
     private GridWidget grid;
     private String race, name;
     private AdminBuildsScreen buildScreen;
@@ -42,19 +43,12 @@ public class AdminLevelScreen extends Screen {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (CLIENT_TEMP.hasChanges()) {
-            if (CLIENT_TEMP.hasLevelsSet()) this.levelsSet = CLIENT_TEMP.getLevelsSetWithClean();
-            if (CLIENT_TEMP.hasNewBuild()) {
-                this.needShowBuild = true;
-                this.build = CLIENT_TEMP.getNewBuildWithClean();
-            };
-            CLIENT_TEMP.resetChanges();
-            clearAndInit();
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data) {
+            case LEVELS_SET -> levelsSet = CLIENT_TEMP.getLevelsSet();
         }
+        clearAndInit();
     }
-
     @Override
     protected void init() {
         super.init();

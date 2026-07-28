@@ -15,6 +15,7 @@ import net.minecraft.client.render.BlockRenderLayer;
 
 public class Custom_castlefightClient implements ClientModInitializer {
     public static ClientTempStorage CLIENT_TEMP;
+
     @Override
     public void onInitializeClient() {
         BlockRenderLayerMap.putBlock(BuildingBlock.BUILDING_BLOCK, BlockRenderLayer.CUTOUT);

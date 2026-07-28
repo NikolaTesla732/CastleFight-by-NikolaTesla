@@ -1,6 +1,7 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screen.Screen;
@@ -13,7 +14,7 @@ import java.util.Set;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
-public class AdminBuildsScreen extends Screen {
+public class AdminBuildsScreen extends CastleFightBaseScreen {
     private final Screen adminScreen;
     private GridWidget grid;
     private String race;
@@ -34,14 +35,12 @@ public class AdminBuildsScreen extends Screen {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasNamesSet()){
-            this.raceBuilds = CLIENT_TEMP.getNamesSetWithClean();
-            clearAndInit();
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data) {
+            case NAMES_SET -> this.raceBuilds = CLIENT_TEMP.getNamesSet();
         }
+        clearAndInit();
     }
-
     @Override
     protected void init() {
         super.init();
@@ -102,4 +101,6 @@ public class AdminBuildsScreen extends Screen {
         this.grid.refreshPositions();
         this.grid.forEachChild(this::addDrawableChild);
     }
+
+
 }

@@ -29,7 +29,7 @@ import java.util.UUID;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 
 
-public class LobbyScreen extends ScreenHandler {
+public class LobbyScreen extends CastleFightBaseScreenHandler {
     public static final Identifier LOBBYSCREEN_ID = Identifier.of(MOD_ID,"lobby_screen");
     public static ScreenHandlerType<LobbyScreen> LOBBYSCREEN_TYPE;
     public static final PacketCodec<RegistryByteBuf,Map<MatchUtilities.MatchFormat,Integer>> PACKET_CODEC = PacketCodec.of(

@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
 
-public class MainGameScreen extends ScreenHandler {
+public class MainGameScreen extends CastleFightBaseScreenHandler {
 
     public static final Identifier MAINGAMESCREEN_ID = Identifier.of(MOD_ID,"main_game_screen");
     public static ScreenHandlerType<MainGameScreen> MAINGAMESCREEN_TYPE;

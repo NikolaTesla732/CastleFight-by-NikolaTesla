@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.client.clientFunc;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
+import com.custom.castlefight.custom_castlefight.CustomFunc.StorageUpdateListener;
 
 import java.util.*;
 
@@ -10,7 +11,7 @@ public class ClientTempStorage {
     public ClientTempStorage() {
 
     }
-
+    private final List<StorageUpdateListener> listeners = new ArrayList<>();
     private String race, name;
     private int level;
     private BuildUtilities.BuildTemplate newBuild, oldBuild;
@@ -18,286 +19,135 @@ public class ClientTempStorage {
     private Set<String> namesSet;
     private Set<String> racesSet;
     private MatchUtilities.MatchAnswer answer;
-    private int changes = 0;
     private List<UUID> matches;
     private Map<MatchUtilities.MatchFormat,Integer> countPlayer;
     private Map<MatchUtilities.TeamColor, List<String>> playersTeam;
     private MatchUtilities.MatchState matchState;
-
+    public void subscribe(StorageUpdateListener listener){
+        if (!listeners.contains(listener)) listeners.add(listener);
+    }
+    public void unsubscribe(StorageUpdateListener listener){
+        listeners.remove(listener);
+    }
+    private void notifyListeners(MatchUtilities.MatchData data){
+        for (StorageUpdateListener listener : listeners){
+            listener.onStorageUpdate(data);
+        }
+    }
     public void setMatchState(MatchUtilities.MatchState state){
         matchState = state;
-        markDirty();
-    }
-    public MatchUtilities.MatchState getMatchState(){
-        resetChanges();
-        return matchState;
-    }
-    public MatchUtilities.MatchState getMatchStateWithClean(){
-        MatchUtilities.MatchState state = matchState;
-        matchState = null;
-        resetChanges();
-        return state;
-    }
-    public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeam() {
-        resetChanges();
-        return playersTeam;
-    }
-    public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeamWithClean() {
-        Map<MatchUtilities.TeamColor, List<String>> players = new HashMap<>(playersTeam);
-        this.playersTeam = null;
-        resetChanges();
-        return players;
+        notifyListeners(MatchUtilities.MatchData.MATCH_STATE);
     }
 
     public void setPlayersTeam(Map<MatchUtilities.TeamColor, List<String>> playersTeam) {
         this.playersTeam = playersTeam;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.PLAYERS_TEAM);
     }
 
-    public void markDirty(){
-        this.changes++;
-    }
-    public List<UUID> getMatches() {
-        resetChanges();
-        return matches;
-    }
-    public boolean hasPlayersTeam(){
-        return playersTeam != null;
-    }
-    public boolean hasAnswer(){
-        return answer != null;
-    }
-    public boolean hasMatches(){
-        return matches != null;
-    }
-    public boolean hasCountPlayer() {return countPlayer != null;}
-
-    public int getChanges() {
-        return changes;
-    }
-
-    public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
-        resetChanges();
-        return new HashMap<>(countPlayer);
-    }
-    public boolean hasMatchState(){
-        return matchState != null;
-    }
-    public Map<MatchUtilities.MatchFormat, Integer> getCountPlayerWithClean() {
-        Map<MatchUtilities.MatchFormat,Integer> countPlayer1 = new HashMap<>(countPlayer);
-        this.countPlayer = null;
-        resetChanges();
-        return countPlayer1;
-    }
     public void setCountPlayer(Map<MatchUtilities.MatchFormat, Integer> countPlayer1){
         this.countPlayer = countPlayer1;
-        markDirty();
-    }
-    public List<UUID> getMatchesWithClean() {
-        List<UUID> matches1 = new ArrayList<>(matches);
-        matches = null;
-        resetChanges();
-        return matches1;
+        notifyListeners(MatchUtilities.MatchData.COUNT_PLAYER);
     }
 
     public void setMatches(List<UUID> matches) {
         this.matches = matches;
-        markDirty();
-    }
-
-    public void resetChanges() {
-        this.changes--;
-        if (changes < 0) this.changes = 0;
-    }
-
-    public MatchUtilities.MatchAnswer getAnswer() {
-        resetChanges();
-        return answer;
+        notifyListeners(MatchUtilities.MatchData.MATCHES);
     }
 
     public void setAnswer(MatchUtilities.MatchAnswer answer) {
         this.answer = answer;
-        markDirty();
-    }
-
-    public MatchUtilities.MatchAnswer getAnswerWithClean() {
-        MatchUtilities.MatchAnswer matchAnswer = answer;
-        resetChanges();
-        answer = null;
-        return matchAnswer;
+        notifyListeners(MatchUtilities.MatchData.ANSWER);
     }
 
     public void setNewBuild(BuildUtilities.BuildTemplate build) {
         this.newBuild = build;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.NEW_BUILD);
     }
 
     public void setOldBuild(BuildUtilities.BuildTemplate build) {
         this.oldBuild = build;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.OLD_BUILD);
     }
 
     public void setLevel(int level) {
         this.level = level;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.LEVEL);
     }
 
     public void setName(String name) {
         this.name = name;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.NAME);
     }
 
     public void setRace(String race) {
         this.race = race;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.RACE);
     }
 
     public void setLevelsSet(Set<Integer> levelsSet) {
         this.levelsSet = levelsSet;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.LEVELS_SET);
     }
 
     public void setNamesSet(Set<String> namesSet) {
         this.namesSet = namesSet;
-        markDirty();
+        notifyListeners(MatchUtilities.MatchData.NAMES_SET);
     }
 
     public void setRacesSet(Set<String> racesSet) {
         this.racesSet = racesSet;
-        markDirty();
-    }
-
-    public boolean hasChanges() {
-        return this.changes > 0;
-    }
-
-    public String getNameWithClean() {
-        String nameTemp = name;
-        this.name = null;
-        resetChanges();
-        return nameTemp;
-    }
-
-    public BuildUtilities.BuildTemplate getNewBuildWithClean() {
-        BuildUtilities.BuildTemplate build = newBuild;
-        this.newBuild = null;
-        resetChanges();
-        return build;
-    }
-
-    public BuildUtilities.BuildTemplate getOldBuildWithClean() {
-        BuildUtilities.BuildTemplate build = oldBuild;
-        this.oldBuild = null;
-        resetChanges();
-        return build;
-    }
-
-    public int getLevelWithClean() {
-        int levelTemp = level;
-        this.level = 0;
-        resetChanges();
-        return levelTemp;
-    }
-
-    public String getRaceWithClean() {
-        String raceTemp = race;
-        this.race = null;
-        resetChanges();
-        return raceTemp;
-    }
-
-    public Set<Integer> getLevelsSetWithClean() {
-        Set<Integer> set = new HashSet<>(levelsSet);
-        this.levelsSet.clear();
-        resetChanges();
-        return set;
-    }
-
-    public Set<String> getNamesSetWithClean() {
-        Set<String> set = new HashSet<>(namesSet);
-        this.namesSet.clear();
-        resetChanges();
-        return set;
-    }
-
-    public Set<String> getRacesSetWithClean() {
-        Set<String> set = new HashSet<>(racesSet);
-        this.racesSet.clear();
-        resetChanges();
-        return set;
-    }
-
-    public Set<String> getRacesSet() {
-        resetChanges();
-        return new HashSet<>(racesSet);
-    }
-
-    public Set<String> getNamesSet() {
-        resetChanges();
-        return new HashSet<>(namesSet);
-    }
-
-    public Set<Integer> getLevelsSet() {
-        resetChanges();
-        return new HashSet<>(levelsSet);
-    }
-
-    public BuildUtilities.BuildTemplate getOldBuild() {
-        resetChanges();
-        return oldBuild;
-    }
-
-    public BuildUtilities.BuildTemplate getNewBuild() {
-        resetChanges();
-        return newBuild;
+        notifyListeners(MatchUtilities.MatchData.RACES_SET);
     }
 
     public String getRace() {
-        resetChanges();
         return race;
     }
 
-    public int getLevel() {
-        resetChanges();
-        return level;
-    }
-
     public String getName() {
-        resetChanges();
         return name;
     }
 
-    public boolean hasRace() {
-        return race != null && !race.isBlank();
+    public int getLevel() {
+        return level;
     }
 
-    public boolean hasName() {
-        return name != null && !name.isBlank();
+    public BuildUtilities.BuildTemplate getNewBuild() {
+        return newBuild;
     }
 
-    public boolean hasLevel() {
-        return level > 0;
+    public BuildUtilities.BuildTemplate getOldBuild() {
+        return oldBuild;
     }
 
-    public boolean hasNewBuild() {
-        return newBuild != null;
+    public Set<Integer> getLevelsSet() {
+        return levelsSet;
     }
 
-    public boolean hasOldBuild() {
-        return oldBuild != null;
+    public Set<String> getNamesSet() {
+        return namesSet;
     }
 
-    public boolean hasRacesSet() {
-        return racesSet != null && !racesSet.isEmpty();
+    public Set<String> getRacesSet() {
+        return racesSet;
     }
 
-    public boolean hasNamesSet() {
-        return namesSet != null && !namesSet.isEmpty();
+    public MatchUtilities.MatchAnswer getAnswer() {
+        return answer;
     }
 
-    public boolean hasLevelsSet() {
-        return levelsSet != null && !levelsSet.isEmpty();
+    public List<UUID> getMatches() {
+        return matches;
     }
 
+    public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
+        return countPlayer;
+    }
 
+    public MatchUtilities.MatchState getMatchState() {
+        return matchState;
+    }
+
+    public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeam() {
+        return playersTeam;
+    }
 }

@@ -18,7 +18,7 @@ import java.util.*;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
-public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
+public class LobbyScreenHandled extends CastleFightBaseScreenHandled<LobbyScreen>{
     private GridWidget grid;
     private boolean nextStageMode = false;
     private Map<MatchUtilities.MatchFormat, Integer> playersCount;
@@ -29,29 +29,17 @@ public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
     }
 
     @Override
-    protected void handledScreenTick() {
-        super.handledScreenTick();
-        if (!CLIENT_TEMP.hasChanges()) return;
-        if ( CLIENT_TEMP.hasAnswer()) {
-            LOGGER.info(String.valueOf(CLIENT_TEMP.getAnswerWithClean()));
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data){
+            case ANSWER -> {
+                LOGGER.info(String.valueOf(CLIENT_TEMP.getAnswer()));
+            }
+            case COUNT_PLAYER -> {
+                this.playersCount = CLIENT_TEMP.getCountPlayer();
+                LOGGER.info(String.valueOf(playersCount.get(MatchUtilities.MatchFormat.OneVsOne)));
+                clearAndInit();
+            }
         }
-        LOGGER.info(String.valueOf(CLIENT_TEMP.hasCountPlayer()));
-        if (CLIENT_TEMP.hasCountPlayer()){
-            this.playersCount = CLIENT_TEMP.getCountPlayerWithClean();
-            LOGGER.info(String.valueOf(playersCount.get(MatchUtilities.MatchFormat.OneVsOne)));
-            clearAndInit();
-        }
-    }
-    @Override
-    protected void drawForeground(DrawContext context,int mouseX,int mouseY){
-        context.drawText(
-                this.textRenderer,
-                this.title,
-                this.width/2,
-                this.height-30,
-                0x404040,
-                false
-        );
     }
 
     @Override
@@ -105,8 +93,4 @@ public class LobbyScreenHandled extends HandledScreen<LobbyScreen> {
         this.grid.forEachChild(this::addDrawableChild);
     }
 
-    @Override
-    protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
-        context.fill(0, 0, this.width, this.height, 0x88000000);
-    }
 }

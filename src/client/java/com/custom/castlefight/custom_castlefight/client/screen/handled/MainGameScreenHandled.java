@@ -21,17 +21,14 @@ import java.util.Map;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
-public class MainGameScreenHandled extends HandledScreen<MainGameScreen> {
+public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGameScreen> {
     private Map<MatchUtilities.TeamColor, List<String>> playerTeamList = new HashMap<>();
     public MatchUtilities.MatchState state;
     public IScreenFragment fragment;
     private GridWidget grid;
     private MatchUtilities.MatchAnswer answer = MatchUtilities.MatchAnswer.NONE;
-    private boolean needUpdate = false;
     private int timer;
     private int fullTimer;
-
-    public MatchUtilities.ActionPlayer waitings = MatchUtilities.ActionPlayer.NONE;
 
     public MainGameScreenHandled(MainGameScreen handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -43,66 +40,29 @@ public class MainGameScreenHandled extends HandledScreen<MainGameScreen> {
     @Override
     protected void handledScreenTick() {
         super.handledScreenTick();
-        if (timer > 0) this.timer--;
-        if (waitings == null || !CLIENT_TEMP.hasChanges()) {
-            return;
-        }
-        switch (waitings) {
-            case GET_TEAMS -> {
-                if (CLIENT_TEMP.hasPlayersTeam()) {
-                    this.playerTeamList = CLIENT_TEMP.getPlayersTeamWithClean();
-                    setDefaultWaiting();
-                    LOGGER.info("Получены команды игроков от сервера " + playerTeamList.keySet().size());
-                    needUpdate = true;
-                }
-            }
-            case NONE -> {
-                if (CLIENT_TEMP.hasAnswer()) {
-                    this.answer = CLIENT_TEMP.getAnswerWithClean();
-                    setDefaultWaiting();
-                    LOGGER.info("Получен ответ от сервера:" + answer+" "+CLIENT_TEMP.getChanges());
-                    switch (answer) {
-                        case NEED_UPDATE -> {
-                            updateData();
-                            needUpdate = true;
-                        }
-                    }
-
-                }
-            }
-        }
-        switch (answer) {
-            case NEED_UPDATE -> {
-                if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasMatchState()) {
-                    state = CLIENT_TEMP.getMatchStateWithClean();
-                    needUpdate = true;
-                }
-            }
-        }
-        if (needUpdate) {
-            needUpdate = false;
-            clearAndInit();
-        }
-    }
-
-    public void setDefaultWaiting() {
-        waitings = MatchUtilities.ActionPlayer.NONE;
-    }
-
-    public void clearAndInitPublic() {
-        clearAndInit();
+        if (timer > 0) timer--;
     }
 
     @Override
-    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        context.drawText(
-                this.textRenderer,
-                this.title,
-                this.width / 2,
-                this.height - 30,
-                0x404040,
-                false
-        );
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        if (timer > 0) this.timer--;
+        switch (data){
+            case PLAYERS_TEAM -> {
+                this.playerTeamList = CLIENT_TEMP.getPlayersTeam();
+                LOGGER.info("Получены команды игроков от сервера " + playerTeamList.keySet().size());
+            }
+            case ANSWER -> {
+                this.answer = CLIENT_TEMP.getAnswer();
+                LOGGER.info("Получен ответ от сервера: " + answer);
+                switch (answer) {
+                    case NEED_UPDATE -> {
+                        this.playerTeamList = null;
+                    }
+                }
+            }
+            case MATCH_STATE -> state = CLIENT_TEMP.getMatchState();
+        }
+        clearAndInit();
     }
 
     public void updateData() {
@@ -116,7 +76,6 @@ public class MainGameScreenHandled extends HandledScreen<MainGameScreen> {
                 MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
                 action.setAction(MatchUtilities.ActionPlayer.GET_TEAMS);
                 ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
-                waitings = MatchUtilities.ActionPlayer.GET_TEAMS;
             }
         }
     }
@@ -155,6 +114,7 @@ public class MainGameScreenHandled extends HandledScreen<MainGameScreen> {
         );
         grid.forEachChild(this::addDrawableChild);
     }
+
     private void drawTimer(DrawContext context,float deltaTicks){
         int x = (width - 200) / 2;
         int y = 20;
@@ -166,12 +126,8 @@ public class MainGameScreenHandled extends HandledScreen<MainGameScreen> {
             switch (state){
                 case CHOICE_TEAM -> drawTimer(context,deltaTicks);
             }
-
         super.render(context, mouseX, mouseY, deltaTicks);
     }
 
-    @Override
-    protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
-        context.fill(0, 0, this.width, this.height, 0x88000000);
-    }
+
 }

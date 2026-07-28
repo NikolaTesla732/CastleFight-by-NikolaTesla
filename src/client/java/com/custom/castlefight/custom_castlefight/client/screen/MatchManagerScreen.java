@@ -4,7 +4,6 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoClientMatchActionC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.text.Text;
@@ -16,24 +15,22 @@ import java.util.UUID;
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
-public class MatchManagerScreen extends Screen {
+public class MatchManagerScreen extends CastleFightBaseScreen {
     private GridWidget grid;
     private List<UUID> matches = new ArrayList<>();
-    private boolean waiting;
 
     protected MatchManagerScreen() {
         super(Text.literal("Менеджер матчей"));
     }
+
     @Override
-    public void tick() {
-        super.tick();
-        if (!waiting) return;
-        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasMatches()) {
-            setMatches(CLIENT_TEMP.getMatchesWithClean());
-            waiting = false;
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data){
+            case MATCHES -> this.matches = CLIENT_TEMP.getMatches();
         }
         clearAndInit();
     }
+
     public void setMatches(List<UUID> matchList){
         this.matches = matchList;
     }
@@ -44,7 +41,6 @@ public class MatchManagerScreen extends Screen {
             MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
             action.setAction(MatchUtilities.ActionPlayer.GET_MATCHES);
             ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
-            waiting = true;
         }
         int column = 0;
         int row = 1;

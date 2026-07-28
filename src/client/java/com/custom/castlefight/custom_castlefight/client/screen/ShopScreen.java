@@ -17,9 +17,8 @@ public class ShopScreen extends Screen {
     }
 
     private void onBuyClicked(){
-        client.player.closeScreen();
-        ClientPlayNetworking.send(new RequestToGiveC2SPacket(new ItemStack(ConstructionBlock.constructionBlock)));
         ClientPlayNetworking.send(new RequestToGiveC2SPacket(new ItemStack(ScanBlock.ScanBlock)));
+        client.player.closeScreen();
     }
     @Override
     protected void init(){

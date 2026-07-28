@@ -22,7 +22,7 @@ import java.util.*;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
-public class AdminScreen extends Screen {
+public class AdminScreen extends CastleFightBaseScreen {
     private TabManager tab_manager;
     private TabNavigationWidget tab_navigation;
     private MainTab main_tab;
@@ -31,7 +31,6 @@ public class AdminScreen extends Screen {
     private List<UUID> matches = new ArrayList<>();
     private ButtonWidget modeBuild;
     private boolean removeMode = false;
-    private boolean waiting = false;
 
     public AdminScreen(Text title) {
         super(title);
@@ -41,9 +40,6 @@ public class AdminScreen extends Screen {
         this.raceSet = races;
     }
 
-    public void setMatches(List<UUID> matchesList) {
-        this.matches = matchesList;
-    }
     public static boolean isInt(String text) {
         try {
             Integer.parseInt(text);
@@ -52,17 +48,16 @@ public class AdminScreen extends Screen {
             return false;
         }
     }
+
     @Override
-    public void tick() {
-        super.tick();
-        if (!waiting) return;
-        if (CLIENT_TEMP.hasChanges() && CLIENT_TEMP.hasRacesSet()) {
-            setRaces(CLIENT_TEMP.getRacesSetWithClean());
-            waiting = false;
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data){
+            case RACES_SET -> {
+                setRaces(CLIENT_TEMP.getRacesSet());
+            }
         }
         clearAndInit();
     }
-
     @Override
     protected void init() {
         super.init();
@@ -91,6 +86,8 @@ public class AdminScreen extends Screen {
         this.tab_manager.setCurrentTab(this.main_tab, true);
     }
 
+
+
     //Основная вкладка, открывается первой
     class MainTab extends GridScreenTab {
         public void modeAction() {
@@ -103,10 +100,9 @@ public class AdminScreen extends Screen {
             super(Text.literal("Шаблоны"));
             this.grid.setColumnSpacing(8);
             this.grid.setRowSpacing(6);
-            if (raceSet.isEmpty() && !waiting) {
+            if (raceSet.isEmpty()) {
                 BuildTemplateAction action = new BuildTemplateAction();
                 action.setActionGetAllRaces();
-                waiting = true;
                 ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
                 return;
             }

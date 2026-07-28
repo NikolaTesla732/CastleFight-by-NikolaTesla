@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.*;
 
-public class ScanScreen extends ScreenHandler {
+public class ScanScreen extends CastleFightBaseScreenHandler {
 
 
     private final BlockPos startPos;

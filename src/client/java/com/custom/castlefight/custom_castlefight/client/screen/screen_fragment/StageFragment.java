@@ -9,7 +9,6 @@ public class StageFragment implements IScreenFragment{
     public GridWidget buildWidgets(Screen screen) {
         GridWidget grid = new GridWidget();
         if (screen instanceof MainGameScreenHandled){
-
             return grid;
         }
         return null;

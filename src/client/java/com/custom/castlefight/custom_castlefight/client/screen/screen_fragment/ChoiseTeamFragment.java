@@ -40,7 +40,6 @@ public class ChoiseTeamFragment implements IScreenFragment{
                             MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
                             action.setAction(MatchUtilities.ActionPlayer.JOIN_TEAM);
                             action.setTeam(color);
-                            mainScreen.waitings = MatchUtilities.ActionPlayer.NONE;
                             ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                     })
                 ).size(120,20).build(),row--,column,grid.copyPositioner().alignHorizontalCenter());

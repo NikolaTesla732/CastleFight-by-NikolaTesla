@@ -68,8 +68,16 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
                      }
                      MatchUtilities.Match match = manager.getMatch(manager.getPlayerMatch(playerId));
                      MatchUtilities.MatchAnswer answer = match.addPlayerToTeam(playerId,payload.matchAction.getTeam());
-                     ServerPlayNetworking.send(context.player(),new SendMatchAnswerS2CPacket(answer));
                      LOGGER.info("Ответ сервера: "+answer.toString());
+                     if (answer == MatchUtilities.MatchAnswer.NONE) {
+                         Map<MatchUtilities.TeamColor,List<String>> teamMap = new HashMap<>();
+                         for (MatchUtilities.Team team: match.getTeams()){
+                             teamMap.put(team.getColor(),team.getPlayersName(context.server()));
+                         }
+                         ServerPlayNetworking.send(context.player(),new SendTeamsS2CPacket(teamMap));
+                     }
+                     else ServerPlayNetworking.send(context.player(),new SendMatchAnswerS2CPacket(answer));
+
                  }
                  case OPEN_MAIN -> {
                     if (!manager.playerInMatch(playerId)) return;

@@ -2,6 +2,7 @@ package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
 import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
@@ -21,7 +22,7 @@ import java.util.Set;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
-public class RaceBuildsScreen extends Screen {
+public class RaceBuildsScreen extends CastleFightBaseScreen {
     private String race;
     private GridWidget grid;
     private Set<String> namesSet = new HashSet<>();
@@ -34,17 +35,11 @@ public class RaceBuildsScreen extends Screen {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (CLIENT_TEMP.hasChanges() ){
-            if (CLIENT_TEMP.hasNamesSet()) this.namesSet = CLIENT_TEMP.getNamesSetWithClean();
-            if (CLIENT_TEMP.hasNewBuild()) {
-                this.needGiveBuild = true;
-                this.build = CLIENT_TEMP.getNewBuildWithClean();
-                giveBuild();
-            }
-            clearAndInit();
+    public void onStorageUpdate(MatchUtilities.MatchData data) {
+        switch (data){
+            case NEW_BUILD ->  this.build = CLIENT_TEMP.getNewBuild();
         }
+        clearAndInit();
     }
 
     @Override
