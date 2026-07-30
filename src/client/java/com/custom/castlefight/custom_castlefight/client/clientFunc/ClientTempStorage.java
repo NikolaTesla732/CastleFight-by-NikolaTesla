@@ -13,7 +13,7 @@ public class ClientTempStorage {
     }
     private final List<StorageUpdateListener> listeners = new ArrayList<>();
     private String race, name;
-    private int level;
+    private int level,timer,fullTimer;
     private BuildUtilities.BuildTemplate newBuild, oldBuild;
     private Set<Integer> levelsSet;
     private Set<String> namesSet;
@@ -23,6 +23,7 @@ public class ClientTempStorage {
     private Map<MatchUtilities.MatchFormat,Integer> countPlayer;
     private Map<MatchUtilities.TeamColor, List<String>> playersTeam;
     private MatchUtilities.MatchState matchState;
+    private MatchUtilities.PlayerData playerData;
     public void subscribe(StorageUpdateListener listener){
         if (!listeners.contains(listener)) listeners.add(listener);
     }
@@ -34,6 +35,34 @@ public class ClientTempStorage {
             listener.onStorageUpdate(data);
         }
     }
+
+    public MatchUtilities.PlayerData getPlayerData() {
+        return playerData;
+    }
+
+    public void setPlayerData(MatchUtilities.PlayerData playerData) {
+        this.playerData = playerData;
+        notifyListeners(MatchUtilities.MatchData.PLAYER_DATA);
+    }
+
+    public int getTimer() {
+        return timer;
+    }
+
+    public void setTimer(int timer) {
+        this.timer = timer;
+        notifyListeners(MatchUtilities.MatchData.TIMER);
+    }
+
+    public int getFullTimer() {
+        return fullTimer;
+    }
+
+    public void setFullTimer(int fullTimer) {
+        this.fullTimer = fullTimer;
+        notifyListeners(MatchUtilities.MatchData.FULL_TIMER);
+    }
+
     public void setMatchState(MatchUtilities.MatchState state){
         matchState = state;
         notifyListeners(MatchUtilities.MatchData.MATCH_STATE);
@@ -120,15 +149,15 @@ public class ClientTempStorage {
     }
 
     public Set<Integer> getLevelsSet() {
-        return levelsSet;
+        return new HashSet<>(levelsSet);
     }
 
     public Set<String> getNamesSet() {
-        return namesSet;
+        return new HashSet<>(namesSet);
     }
 
     public Set<String> getRacesSet() {
-        return racesSet;
+        return new HashSet<>(racesSet);
     }
 
     public MatchUtilities.MatchAnswer getAnswer() {
@@ -136,11 +165,11 @@ public class ClientTempStorage {
     }
 
     public List<UUID> getMatches() {
-        return matches;
+        return new ArrayList<>(matches);
     }
 
     public Map<MatchUtilities.MatchFormat, Integer> getCountPlayer() {
-        return countPlayer;
+        return new HashMap<>(countPlayer);
     }
 
     public MatchUtilities.MatchState getMatchState() {
@@ -148,6 +177,6 @@ public class ClientTempStorage {
     }
 
     public Map<MatchUtilities.TeamColor, List<String>> getPlayersTeam() {
-        return playersTeam;
+        return new HashMap<>(playersTeam);
     }
 }

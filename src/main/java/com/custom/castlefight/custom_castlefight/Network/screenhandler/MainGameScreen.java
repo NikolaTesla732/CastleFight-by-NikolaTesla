@@ -26,14 +26,20 @@ public class MainGameScreen extends CastleFightBaseScreenHandler {
     public static final Identifier MAINGAMESCREEN_ID = Identifier.of(MOD_ID,"main_game_screen");
     public static ScreenHandlerType<MainGameScreen> MAINGAMESCREEN_TYPE;
     public MainGameData data;
-    public static record MainGameData(MatchUtilities.MatchState state,Integer timer,Integer absoluteTimer){
+    public static record MainGameData(MatchUtilities.MatchState state, Integer timer, Integer absoluteTimer,
+                                      MatchUtilities.PlayerData data){
         static PacketCodec<RegistryByteBuf,MainGameData> PACKET_CODEC = PacketCodec.of(
                 (((value, buf) -> {
                     buf.writeEnumConstant(value.state());
                     buf.writeInt(value.timer());
-                    buf.writeInt(value.absoluteTimer);
+                    buf.writeInt(value.absoluteTimer());
+                    value.data().write(buf);
                 })),
-                ((buf -> new MainGameData(buf.readEnumConstant(MatchUtilities.MatchState.class), buf.readInt(),buf.readInt())))
+                ((buf -> new MainGameData(buf.readEnumConstant(
+                        MatchUtilities.MatchState.class),
+                        buf.readInt(),
+                        buf.readInt(),
+                        MatchUtilities.PlayerData.read(buf))))
         );
     }
     public static void register(){
@@ -52,7 +58,7 @@ public class MainGameScreen extends CastleFightBaseScreenHandler {
         MatchUtilities.MatchManager manager = MatchUtilities.MatchManager.getInstance();
         UUID matchId = manager.getPlayerMatch(inventory.player.getUuid());
         MatchUtilities.Match match = manager.getMatch(matchId);
-        data = new MainGameData(match.getMatchState(),match.getMatchTime(),match.getAbsoluteMatchTime());
+        data = new MainGameData(match.getMatchState(),match.getMatchTime(),match.getAbsoluteMatchTime(),match.getPlayerData(inventory.player.getUuid()));
     }
     public MainGameScreen(int syncId, PlayerInventory inventory,MainGameData data1) {
         super(MAINGAMESCREEN_TYPE, syncId);
@@ -72,11 +78,12 @@ public class MainGameScreen extends CastleFightBaseScreenHandler {
             }
 
             @Override
-            public MainGameData getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
-                MatchUtilities.Match match = manager.getMatch(manager.getPlayerMatch(serverPlayerEntity.getUuid()));
+            public MainGameData getScreenOpeningData(ServerPlayerEntity player) {
+                MatchUtilities.Match match = manager.getMatch(manager.getPlayerMatch(player.getUuid()));
                 return new MainGameData(match.getMatchState(),
                                         match.getMatchTime(),
-                                        match.getAbsoluteMatchTime()
+                                        match.getAbsoluteMatchTime(),
+                                        manager.getMatch(manager.getPlayerMatch(player.getUuid())).getPlayerData(player.getUuid())
                 );
             }
         };

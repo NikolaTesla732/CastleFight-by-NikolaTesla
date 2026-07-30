@@ -16,6 +16,26 @@ public class RegisterReciverS2CPackets {
         registerMatchAnswerReceiver();
         registerTeamsReceiver();
         registerMatchStateReceiver();
+        registerTimerReceiver();
+        registerPlayerDataReceiver();
+    }
+    public static void registerPlayerDataReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(
+            SendPlayerDataS2CPacket.ID,
+            (payload,context) -> {
+                CLIENT_TEMP.setPlayerData(payload.data());
+            });
+    }
+    public static void registerTimerReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(
+                SendTimerS2CPacket.ID,
+                ((payload,context) -> {
+                    context.client().execute(()->{
+                        if (payload.full())CLIENT_TEMP.setFullTimer(payload.timer());
+                        else CLIENT_TEMP.setTimer(payload.timer());
+                    });
+                })
+        );
     }
     public static void registerMatchStateReceiver(){
         ClientPlayNetworking.registerGlobalReceiver(

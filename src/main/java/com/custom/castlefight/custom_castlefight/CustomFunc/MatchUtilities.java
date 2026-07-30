@@ -1,8 +1,6 @@
 package com.custom.castlefight.custom_castlefight.CustomFunc;
 
-import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendCountPlayerS2CPacket;
-import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchAnswerS2CPacket;
-import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.SendMatchStateS2CPacket;
+import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -31,12 +29,22 @@ public class MatchUtilities {
         private List<UUID> playersInMatch = new ArrayList<>();
         private Set<String> races;
         private boolean needUpdateScreen = false;
+        private Map<UUID,PlayerData> matchPlayersData;
+
+        public PlayerData getPlayerData(UUID playerId){
+            return matchPlayersData.get(playerId);
+        }
 
         public Match(UUID id, int maxPlayerInTeam) {
             this.id = id;
             this.matchState = MatchState.START_GAME;
             this.maxPlayerInTeam = maxPlayerInTeam;
             races = TEMPLATES.getRace();
+            matchPlayersData = new HashMap<>();
+        }
+
+        public Map<UUID, PlayerData> getMatchPlayersData() {
+            return matchPlayersData;
         }
 
         public void write(RegistryByteBuf buf) {
@@ -82,68 +90,75 @@ public class MatchUtilities {
             return match;
         }
 
-        public MatchAnswer ban(String race) {
+        public MatchAnswer banRace(String race,UUID playerId) {
             if (matchState != MatchState.BAN_RACE) return MatchAnswer.INVALID_STAGE;
             if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
-            races.remove(race);
-            return MatchAnswer.NONE;
+            if (matchPlayersData.get(playerId).canBan) {
+                races.remove(race);
+                needUpdateScreen = true;
+                matchPlayersData.get(playerId).canBan = false;
+                return MatchAnswer.NONE;
+            }
+            return MatchAnswer.ALREADY_BAN_RACE;
         }
 
         public void nextStage() {
             switch (matchState) {
                 case SETTINGS -> {
                     this.matchState = MatchState.START_GAME;
-                    LOGGER.info(matchState.toString());
                 }
                 case START_GAME -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_TEAM;
                     this.matchTime = 900;
                     this.absoluteMatchTime = 900;
-                    LOGGER.info(matchState.toString());
                 }
                 case CHOICE_TEAM -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.BAN_RACE;
                     this.matchTime = 900;
                     this.absoluteMatchTime = 900;
-                    LOGGER.info(matchState.toString());
                 }
                 case BAN_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_RACE;
                     this.matchTime = 900;
                     this.absoluteMatchTime = 900;
-                    LOGGER.info(matchState.toString());
                 }
                 case CHOICE_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.PLAYING;
                     this.matchTime = 72000;
                     this.absoluteMatchTime = 72000;
-                    LOGGER.info(matchState.toString());
                 }
                 case PLAYING -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.END_GAME;
-                    LOGGER.info(matchState.toString());
                 }
                 case END_GAME -> {
                     this.matchState = MatchState.ENDED_GAME;
-                    LOGGER.info(matchState.toString());
                 }
             }
+            LOGGER.info(matchState.toString());
         }
-
+        public boolean hasPlayerInGame(UUID player){
+            if (matchPlayersData.containsKey(player)) return true;
+            return false;
+        }
 
         public MatchAnswer addPlayerToTeam(UUID player, TeamColor teamColor) {
             if (matchState != MatchState.CHOICE_TEAM) return MatchAnswer.INVALID_STAGE;
+            if (!hasPlayerInGame(player)) return MatchAnswer.NOT_IN_MATCH;
+            LOGGER.info(playersInMatch.toString());
             for (Team team : this.teams) {
                 if (Objects.equals(team.getColor(), teamColor)) {
                     if (hasPlayerInTeam(player)) removePlayerFromTeam(player);
                     if (team.countPlayers() >= this.maxPlayerInTeam) return MatchAnswer.FULL_TEAM;
                     team.addPlayer(player);
-                    removePlayer(player);
+                    playersInMatch.remove(player);
+                    matchPlayersData.get(player).team = team.teamColor;
+                    if (matchPlayersData.containsKey(player)) matchPlayersData.get(player).team = team.teamColor;
+                    LOGGER.info(String.valueOf(matchPlayersData.containsKey(player)));
                     return MatchAnswer.NONE;
                 }
             }
@@ -152,10 +167,12 @@ public class MatchUtilities {
 
         public MatchAnswer addPlayerToMatch(UUID player) {
             if (matchState != MatchState.START_GAME) return MatchAnswer.INVALID_STAGE;
-            if (getAllPlayer().size() < getMaxPlayers()) playersInMatch.add(player);
+            if (getAllPlayer().size() < getMaxPlayers()) {
+                playersInMatch.add(player);
+                matchPlayersData.put(player,new PlayerData(player));
+            }
             if (getAllPlayer().size() >= getMaxPlayers()) nextStage();
             if (getAllPlayer().size() > getMaxPlayers()) {
-                playersInMatch.clear();
                 return MatchAnswer.FULL_MATCH;
             }
             return MatchAnswer.NONE;
@@ -165,12 +182,9 @@ public class MatchUtilities {
             for (Team team : this.teams) {
                 if (team.hasPlayer(player)) {
                     team.removePlayer(player);
+                    if (matchPlayersData.containsKey(player)) matchPlayersData.get(player).team = null;
                 }
             }
-        }
-
-        private void removePlayer(UUID player) {
-            playersInMatch.remove(player);
         }
 
         public boolean hasPlayerInTeam(UUID player) {
@@ -284,11 +298,13 @@ public class MatchUtilities {
                 ServerPlayerEntity player = playerManager.getPlayer(playerId);
                 if (player.currentScreenHandler instanceof MainGameScreen gameScreen){
                     ServerPlayNetworking.send(player,new SendMatchStateS2CPacket(matchState));
-                    ServerPlayNetworking.send(player,new SendMatchAnswerS2CPacket(MatchAnswer.NEED_UPDATE));
+                    ServerPlayNetworking.send(player,new SendTimerS2CPacket(matchTime,false));
+                    ServerPlayNetworking.send(player,new SendTimerS2CPacket(absoluteMatchTime,true));
+                    if (playerId == matchPlayersData.get(playerId).getPlayerId()) ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(matchPlayersData.get(playerId)));
+
                 }
             }
         }
-
         public int getAbsoluteMatchTime() {
             return absoluteMatchTime;
         }
@@ -341,8 +357,51 @@ public class MatchUtilities {
             }
         }
     }
+    public static class PlayerData {
+        private final UUID playerId;
+        public boolean canBan = true;
+        public TeamColor team;
+        public String race;
+        public int gold,income,wood;
+        public static final PacketCodec<RegistryByteBuf,PlayerData> PACKET_CODEC = PacketCodec.of(
+                PlayerData::write,
+                PlayerData::read
+        );
+
+        public PlayerData(UUID id){
+            playerId = id;
+        }
+
+        public UUID getPlayerId() {
+            return playerId;
+        }
+
+        public void write(RegistryByteBuf buf){
+            buf.writeUuid(playerId);
+            buf.writeBoolean(canBan);
+            buf.writeBoolean(team != null);
+            if(team != null)buf.writeEnumConstant(team);
+            buf.writeBoolean(race != null);
+            if(race != null) buf.writeString(race);
+            buf.writeInt(gold);
+            buf.writeInt(income);
+            buf.writeInt(wood);
+        }
+
+        public static PlayerData read(RegistryByteBuf buf){
+            PlayerData data = new PlayerData(buf.readUuid());
+            data.canBan = buf.readBoolean();
+            if (buf.readBoolean()) data.team = buf.readEnumConstant(TeamColor.class);
+            if (buf.readBoolean()) data.race = buf.readString();
+            data.gold = buf.readInt();
+            data.income = buf.readInt();
+            data.wood = buf.readInt();
+            return data;
+        }
+    }
     public static enum MatchAnswer {
         NONE,
+        NOT_IN_MATCH,
         FULL_MATCH,
         ALREADY_IN_GAME,
         INVALID_STAGE,
@@ -351,8 +410,8 @@ public class MatchUtilities {
         INVALID_RACE,
         NOT_FOUND_MATCH,
         ALREADY_HAS_TEAM,
-        NEED_UPDATE
-
+        NEED_UPDATE,
+        ALREADY_BAN_RACE
     }
 
     public static class MatchManager {
@@ -496,6 +555,7 @@ public class MatchUtilities {
         }
     }
     public static enum MatchData{
+        NONE,
         RACE,
         NAME,
         LEVEL,
@@ -508,15 +568,18 @@ public class MatchUtilities {
         MATCHES,
         COUNT_PLAYER,
         PLAYERS_TEAM,
-        MATCH_STATE
+        MATCH_STATE,
+        TIMER,
+        FULL_TIMER,
+        PLAYER_DATA
     }
     public enum MatchState {
         NOT_ACTIVE,
         SETTINGS,
+        START_GAME,
         CHOICE_TEAM,
         BAN_RACE,
         CHOICE_RACE,
-        START_GAME,
         PLAYING,
         END_GAME,
         ENDED_GAME
@@ -687,9 +750,10 @@ public class MatchUtilities {
         CHOOSE_RACE,
         GET_TEAMS,
         GET_MATCHES,
+        GET_RACES,
+        GET_PLAYER_DATA,
         OPEN_LOBBY,
-        OPEN_MAIN
-
+        OPEN_MAIN,
     }
 
     public static class MatchAction {
@@ -697,6 +761,7 @@ public class MatchUtilities {
         private ActionPlayer action;
         private String race;
         private MatchFormat format;
+        private PlayerData playerData;
         public static PacketCodec<RegistryByteBuf, MatchAction> PACKET_CODEC = PacketCodec.of(
                 MatchAction::write,
                 MatchAction::read
@@ -709,7 +774,9 @@ public class MatchUtilities {
             buf.writeBoolean(this.race != null && !this.race.isBlank());
             if (this.race != null && !this.race.isBlank()) buf.writeString(this.race);
             buf.writeBoolean(this.format != null);
-            if ((this.format != null))buf.writeEnumConstant(format);
+            if ((this.format != null)) buf.writeEnumConstant(format);
+            buf.writeBoolean(this.playerData != null);
+            if (this.playerData != null) playerData.write(buf);
         }
 
         public static MatchAction read(RegistryByteBuf buf) {
@@ -718,6 +785,7 @@ public class MatchUtilities {
             if (buf.readBoolean()) matchAction.setTeam(buf.readEnumConstant(TeamColor.class));
             if (buf.readBoolean()) matchAction.setRace(buf.readString());
             if (buf.readBoolean()) matchAction.setFormat(buf.readEnumConstant(MatchFormat.class));
+            if (buf.readBoolean()) matchAction.setPlayerData(PlayerData.read(buf));
             return matchAction;
         }
 
@@ -732,11 +800,19 @@ public class MatchUtilities {
                 case JOIN_MATCH -> {
                     return this.format != null;
                 }
-                case GET_TEAMS,GET_MATCHES,OPEN_LOBBY,OPEN_MAIN-> {
+                case GET_RACES,GET_TEAMS,GET_MATCHES,OPEN_LOBBY,OPEN_MAIN-> {
                     return true;
                 }
             }
             return false;
+        }
+
+        public PlayerData getPlayerData() {
+            return playerData;
+        }
+
+        public void setPlayerData(PlayerData playerData) {
+            this.playerData = playerData;
         }
 
         public MatchAction() {

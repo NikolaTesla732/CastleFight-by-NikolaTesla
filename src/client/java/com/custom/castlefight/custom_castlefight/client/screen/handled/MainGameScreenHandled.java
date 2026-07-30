@@ -4,6 +4,7 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoClientMatchActionC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import com.custom.castlefight.custom_castlefight.client.render.Draw;
+import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.BanRaceFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.ChoiseTeamFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.IScreenFragment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.widget.SimplePositioningWidget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,52 +24,82 @@ import static com.custom.castlefight.custom_castlefight.client.Custom_castlefigh
 import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGameScreen> {
-    private Map<MatchUtilities.TeamColor, List<String>> playerTeamList = new HashMap<>();
-    public MatchUtilities.MatchState state;
-    public IScreenFragment fragment;
+    private Map<MatchUtilities.TeamColor, List<String>> playerTeamList;
+    private MatchUtilities.MatchState state;
+    private IScreenFragment fragment;
     private GridWidget grid;
     private MatchUtilities.MatchAnswer answer = MatchUtilities.MatchAnswer.NONE;
+    private List<String> races;
     private int timer;
     private int fullTimer;
-
+    private MatchUtilities.MatchData waiting = MatchUtilities.MatchData.NONE;
+    private boolean canBan = false;
+    private MatchUtilities.PlayerData playerData;
     public MainGameScreenHandled(MainGameScreen handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         state = handler.data.state();
         timer = handler.data.timer();
         fullTimer = handler.data.absoluteTimer();
+        playerData = handler.data.data();
     }
-
+    public void updateGrid(){
+        if (grid!=null){
+            grid.refreshPositions();
+            grid.forEachChild(this::addDrawableChild);
+        }
+    }
     @Override
     protected void handledScreenTick() {
         super.handledScreenTick();
         if (timer > 0) timer--;
+
+    }
+
+    public MatchUtilities.PlayerData getPlayerData() {
+        return playerData;
     }
 
     @Override
     public void onStorageUpdate(MatchUtilities.MatchData data) {
-        if (timer > 0) this.timer--;
-        switch (data){
+        String dataString = "NULL";
+        switch (data) {
             case PLAYERS_TEAM -> {
                 this.playerTeamList = CLIENT_TEMP.getPlayersTeam();
-                LOGGER.info("Получены команды игроков от сервера " + playerTeamList.keySet().size());
+                dataString = String.valueOf(playerTeamList.keySet().size());
             }
             case ANSWER -> {
                 this.answer = CLIENT_TEMP.getAnswer();
-                LOGGER.info("Получен ответ от сервера: " + answer);
-                switch (answer) {
-                    case NEED_UPDATE -> {
-                        this.playerTeamList = null;
-                    }
-                }
+                dataString = answer.toString();
             }
-            case MATCH_STATE -> state = CLIENT_TEMP.getMatchState();
+            case RACES_SET -> {
+                this.races = new ArrayList<>(CLIENT_TEMP.getRacesSet());
+                dataString = races.toString();
+            }
+            case MATCH_STATE -> {
+                state = CLIENT_TEMP.getMatchState();
+                dataString = state.toString();
+            }
+            case TIMER -> {
+                timer = CLIENT_TEMP.getTimer();
+                dataString = String.valueOf(timer);
+            }
+            case FULL_TIMER -> {
+                fullTimer = CLIENT_TEMP.getFullTimer();
+                dataString = String.valueOf(fullTimer);
+            }
+            case PLAYER_DATA -> {
+                playerData = CLIENT_TEMP.getPlayerData();
+                dataString = "данные игрока";
+            }
         }
+        if (waiting == data) waiting = MatchUtilities.MatchData.NONE;
+        LOGGER.info("Полученны данные: " + data.toString() + ": " + dataString);
         clearAndInit();
     }
 
     public void updateData() {
         switch (state) {
-            case NOT_ACTIVE, BAN_RACE -> {
+            case NOT_ACTIVE -> {
                 LOGGER.info("Экран закрыт, стадия:" + state);
                 client.currentScreen.close();
             }
@@ -76,6 +108,14 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                 MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
                 action.setAction(MatchUtilities.ActionPlayer.GET_TEAMS);
                 ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
+                waiting = MatchUtilities.MatchData.PLAYERS_TEAM;
+            }
+            case BAN_RACE -> {
+                races = null;
+                MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
+                action.setAction(MatchUtilities.ActionPlayer.GET_RACES);
+                ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
+                waiting = MatchUtilities.MatchData.RACES_SET;
             }
         }
     }
@@ -85,47 +125,55 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
         super.init();
         LOGGER.info("Экран основной игры открыт, стадия:" + state.toString());
         switch (state) {
-            case NOT_ACTIVE, BAN_RACE -> {
+            case NOT_ACTIVE -> {
                 LOGGER.info("Экран закрыт, стадия:" + state);
                 client.currentScreen.close();
             }
             case CHOICE_TEAM -> {
-                if (playerTeamList == null || playerTeamList.isEmpty()) {
-                    if (answer != MatchUtilities.MatchAnswer.NEED_UPDATE) updateData();
+                if (playerTeamList == null) {
+                    if (waiting == MatchUtilities.MatchData.NONE) updateData();
                     return;
                 }
                 fragment = new ChoiseTeamFragment(playerTeamList);
                 grid = fragment.buildWidgets(this);
-                grid.setRowSpacing(5);
-                grid.setColumnSpacing(6);
-                LOGGER.info("Виджеты размещены");
+            }
+            case BAN_RACE -> {
+                if (races == null) {
+                    if (waiting == MatchUtilities.MatchData.NONE) updateData();
+                    return;
+                }
+                fragment = new BanRaceFragment(races);
+                grid = fragment.buildWidgets(this);
             }
         }
         if (grid == null) return;
-//        grid.setPosition(this.width / 10, this.height / 10);
+        grid.setRowSpacing(5);
+        grid.setColumnSpacing(6);
         grid.refreshPositions();
         SimplePositioningWidget.setPos(
                 grid,
-                0,0,
+                0, 0,
                 this.width,
                 this.height,
                 0.5f,
                 0.5f
         );
         grid.forEachChild(this::addDrawableChild);
+        LOGGER.info("Виджеты размещены");
     }
 
-    private void drawTimer(DrawContext context,float deltaTicks){
+    private void drawTimer(DrawContext context, float deltaTicks) {
         int x = (width - 200) / 2;
         int y = 20;
-        float progress = (timer - deltaTicks) / (float)(fullTimer);
-        Draw.drawSimpleProgressBar(context, x, y, 200, 10,progress );
+        float progress = (timer - deltaTicks) / (float) (fullTimer);
+        Draw.drawSimpleProgressBar(context, x, y, 200, 10, progress);
     }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-            switch (state){
-                case CHOICE_TEAM -> drawTimer(context,deltaTicks);
-            }
+        switch (state) {
+            case CHOICE_TEAM, BAN_RACE -> drawTimer(context, deltaTicks);
+        }
         super.render(context, mouseX, mouseY, deltaTicks);
     }
 
