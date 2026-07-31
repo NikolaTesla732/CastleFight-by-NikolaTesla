@@ -100,9 +100,15 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
                     MatchUtilities.MatchAnswer answer = match.banRace(action.getRace(),playerId);
                     if (answer == MatchUtilities.MatchAnswer.NONE) {
                         ServerPlayNetworking.send(player, new SendRacesSetS2CPacket(match.getRaces()));
+                        ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(match.getPlayerData(playerId)));
                     } else ServerPlayNetworking.send(player, new SendMatchAnswerS2CPacket(answer));
                 }
                 case CHOOSE_RACE -> {
+                    MatchUtilities.MatchAnswer answer = match.choiceRace(playerId,payload.matchAction().getRace());
+                    if (answer == MatchUtilities.MatchAnswer.NONE){
+                        ServerPlayNetworking.send(player, new SendRacesSetS2CPacket(match.getRaces()));
+                        ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(match.getPlayerData(playerId)));
+                    } else ServerPlayNetworking.send(player, new SendMatchAnswerS2CPacket(answer));
                 }
                 case GET_PLAYER_DATA -> {
                     if (playerId == match.getPlayerData(playerId).getPlayerId()){

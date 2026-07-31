@@ -5,6 +5,7 @@ import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoC
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import com.custom.castlefight.custom_castlefight.client.render.Draw;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.BanRaceFragment;
+import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.ChoiseRaceFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.ChoiseTeamFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.IScreenFragment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -110,7 +111,7 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                 ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                 waiting = MatchUtilities.MatchData.PLAYERS_TEAM;
             }
-            case BAN_RACE -> {
+            case BAN_RACE,CHOICE_RACE-> {
                 races = null;
                 MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
                 action.setAction(MatchUtilities.ActionPlayer.GET_RACES);
@@ -135,7 +136,6 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                     return;
                 }
                 fragment = new ChoiseTeamFragment(playerTeamList);
-                grid = fragment.buildWidgets(this);
             }
             case BAN_RACE -> {
                 if (races == null) {
@@ -143,9 +143,16 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                     return;
                 }
                 fragment = new BanRaceFragment(races);
-                grid = fragment.buildWidgets(this);
+            }
+            case CHOICE_RACE -> {
+                if (races == null) {
+                    if (waiting == MatchUtilities.MatchData.NONE) updateData();
+                    return;
+                }
+                fragment = new ChoiseRaceFragment(races);
             }
         }
+        grid = fragment.buildWidgets(this);
         if (grid == null) return;
         grid.setRowSpacing(5);
         grid.setColumnSpacing(6);
@@ -172,7 +179,7 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         switch (state) {
-            case CHOICE_TEAM, BAN_RACE -> drawTimer(context, deltaTicks);
+            case CHOICE_TEAM, BAN_RACE, CHOICE_RACE -> drawTimer(context, deltaTicks);
         }
         super.render(context, mouseX, mouseY, deltaTicks);
     }

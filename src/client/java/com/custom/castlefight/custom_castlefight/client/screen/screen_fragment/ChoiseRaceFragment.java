@@ -11,17 +11,13 @@ import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.text.Text;
 
 import java.util.List;
-import java.util.UUID;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-
-public class BanRaceFragment implements IScreenFragment {
-    final List<String> races;
+public class ChoiseRaceFragment implements IScreenFragment {
+    private final List<String> racesForChoise;
     private String chooseRace = "";
 
-
-    public BanRaceFragment(List<String> data) {
-        this.races = data;
+    public ChoiseRaceFragment(List<String> race1) {
+        racesForChoise = race1;
     }
 
     @Override
@@ -29,31 +25,35 @@ public class BanRaceFragment implements IScreenFragment {
         GridWidget grid = new GridWidget();
         if (screen instanceof MainGameScreenHandled mainScreen) {
             int column = 0;
-            int row = 1;
+            int row = 2;
             int maxRaceInRow = 5;
-            int finalRow = races.size() / maxRaceInRow + 1;
+            int finalRow = racesForChoise.size() / maxRaceInRow + 2;
             MatchUtilities.PlayerData data = mainScreen.getPlayerData();
-            ButtonWidget buttonBan = ButtonWidget.builder(
+            if (data.race != null && !data.race.isBlank()) {
+                TextWidget raceText = new TextWidget(Text.literal(data.race), mainScreen.getTextRenderer());
+                grid.add(raceText, 0, 0);
+            }
+            ButtonWidget choiseButton = ButtonWidget.builder(
                     Text.literal(chooseRace),
-                    (button1 -> {
+                    (button -> {
                         MatchUtilities.MatchAction action = new MatchUtilities.MatchAction();
-                        action.setAction(MatchUtilities.ActionPlayer.BAN_RACE);
+                        action.setAction(MatchUtilities.ActionPlayer.CHOOSE_RACE);
                         action.setRace(chooseRace);
                         ClientPlayNetworking.send(new RequestToDoClientMatchActionC2SPacket(action));
                     })
             ).build();
-            buttonBan.visible = false;
-            buttonBan.active = false;
-            grid.add(buttonBan, finalRow+1, 0);
-            for (String race : races) {
+            choiseButton.visible = false;
+            choiseButton.active = false;
+            grid.add(choiseButton, finalRow + 1, 0);
+            for (String race : racesForChoise) {
                 ButtonWidget raceButton = ButtonWidget.builder(
                         Text.literal(race),
                         (button -> {
-                            if (data.canBan) {
+                            if (data.race == null || race.isBlank()) {
                                 chooseRace = race;
-                                buttonBan.setMessage(Text.literal("Забанить " + chooseRace));
-                                buttonBan.visible = true;
-                                buttonBan.active = true;
+                                choiseButton.visible = true;
+                                choiseButton.active = true;
+                                choiseButton.setMessage(Text.literal("Выбрать расу "+chooseRace));
                                 mainScreen.updateGrid();
                             }
                         })
@@ -64,7 +64,8 @@ public class BanRaceFragment implements IScreenFragment {
                     row++;
                 }
             }
+            return grid;
         }
-        return grid;
+        return null;
     }
 }

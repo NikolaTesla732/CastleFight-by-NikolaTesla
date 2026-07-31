@@ -6,7 +6,6 @@ import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameS
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -90,7 +89,20 @@ public class MatchUtilities {
             return match;
         }
 
+        public MatchAnswer choiceRace(UUID playerId, String race){
+            if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
+            if (matchState != MatchState.CHOICE_RACE) return MatchAnswer.INVALID_STAGE;
+            if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
+            PlayerData data = matchPlayersData.get(playerId);
+            if (data.race == null || data.race.isBlank()){
+                matchPlayersData.get(playerId).race = race;
+                needUpdateScreen = true;
+                return MatchAnswer.NONE;
+            }
+            return MatchAnswer.ALREADY_CHOOSE_RACE;
+        }
         public MatchAnswer banRace(String race,UUID playerId) {
+            if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
             if (matchState != MatchState.BAN_RACE) return MatchAnswer.INVALID_STAGE;
             if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
             if (matchPlayersData.get(playerId).canBan) {
@@ -110,20 +122,20 @@ public class MatchUtilities {
                 case START_GAME -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_TEAM;
-                    this.matchTime = 900;
-                    this.absoluteMatchTime = 900;
+                    this.matchTime = 300;
+                    this.absoluteMatchTime = 300;
                 }
                 case CHOICE_TEAM -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.BAN_RACE;
-                    this.matchTime = 900;
-                    this.absoluteMatchTime = 900;
+                    this.matchTime = 300;
+                    this.absoluteMatchTime = 300;
                 }
                 case BAN_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_RACE;
-                    this.matchTime = 900;
-                    this.absoluteMatchTime = 900;
+                    this.matchTime = 300;
+                    this.absoluteMatchTime = 300;
                 }
                 case CHOICE_RACE -> {
                     needUpdateScreen = true;
@@ -411,7 +423,9 @@ public class MatchUtilities {
         NOT_FOUND_MATCH,
         ALREADY_HAS_TEAM,
         NEED_UPDATE,
-        ALREADY_BAN_RACE
+        ALREADY_BAN_RACE,
+        ALREADY_CHOOSE_RACE,
+        INVALID_MATCH
     }
 
     public static class MatchManager {
@@ -753,7 +767,7 @@ public class MatchUtilities {
         GET_RACES,
         GET_PLAYER_DATA,
         OPEN_LOBBY,
-        OPEN_MAIN,
+        OPEN_MAIN
     }
 
     public static class MatchAction {
