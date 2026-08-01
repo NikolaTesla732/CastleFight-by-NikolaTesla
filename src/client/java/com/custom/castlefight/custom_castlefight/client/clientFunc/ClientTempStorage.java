@@ -11,29 +11,58 @@ public class ClientTempStorage {
     public ClientTempStorage() {
 
     }
+
     private final List<StorageUpdateListener> listeners = new ArrayList<>();
     private String race, name;
-    private int level,timer,fullTimer;
+    private int level, timer, fullTimer, goldTimer = MatchUtilities.Match.fullGoldTimer;
     private BuildUtilities.BuildTemplate newBuild, oldBuild;
     private Set<Integer> levelsSet;
     private Set<String> namesSet;
     private Set<String> racesSet;
     private MatchUtilities.MatchAnswer answer;
     private List<UUID> matches;
-    private Map<MatchUtilities.MatchFormat,Integer> countPlayer;
+    private Map<MatchUtilities.MatchFormat, Integer> countPlayer;
     private Map<MatchUtilities.TeamColor, List<String>> playersTeam;
     private MatchUtilities.MatchState matchState;
     private MatchUtilities.PlayerData playerData;
-    public void subscribe(StorageUpdateListener listener){
+    private boolean playerInMatch = false;
+    public int goldEarnAnimationTime = 150;
+    public long lastGoldEarn = 0;
+    public int goldClip = 0;
+    public int animationTime = goldEarnAnimationTime * 8;
+
+    public void subscribe(StorageUpdateListener listener) {
         if (!listeners.contains(listener)) listeners.add(listener);
     }
-    public void unsubscribe(StorageUpdateListener listener){
+
+    public void unsubscribe(StorageUpdateListener listener) {
         listeners.remove(listener);
     }
-    private void notifyListeners(MatchUtilities.MatchData data){
-        for (StorageUpdateListener listener : listeners){
+
+    private void notifyListeners(MatchUtilities.MatchData data) {
+        for (StorageUpdateListener listener : listeners) {
             listener.onStorageUpdate(data);
         }
+    }
+
+    public boolean isPlayerInMatch() {
+        return playerInMatch;
+    }
+
+    public void setPlayerInMatch(boolean playerInMatch) {
+        this.playerInMatch = playerInMatch;
+        notifyListeners(MatchUtilities.MatchData.PLAYER_IN_MATCH);
+    }
+
+    public int getGoldTimer() {
+        return goldTimer;
+    }
+    public void reduceTheGoldTimer(){
+        goldTimer--;
+    }
+    public void setGoldTimer(int goldTimer) {
+        this.goldTimer = goldTimer;
+        notifyListeners(MatchUtilities.MatchData.GOLD_TIMER);
     }
 
     public MatchUtilities.PlayerData getPlayerData() {
@@ -63,7 +92,7 @@ public class ClientTempStorage {
         notifyListeners(MatchUtilities.MatchData.FULL_TIMER);
     }
 
-    public void setMatchState(MatchUtilities.MatchState state){
+    public void setMatchState(MatchUtilities.MatchState state) {
         matchState = state;
         notifyListeners(MatchUtilities.MatchData.MATCH_STATE);
     }
@@ -73,7 +102,7 @@ public class ClientTempStorage {
         notifyListeners(MatchUtilities.MatchData.PLAYERS_TEAM);
     }
 
-    public void setCountPlayer(Map<MatchUtilities.MatchFormat, Integer> countPlayer1){
+    public void setCountPlayer(Map<MatchUtilities.MatchFormat, Integer> countPlayer1) {
         this.countPlayer = countPlayer1;
         notifyListeners(MatchUtilities.MatchData.COUNT_PLAYER);
     }

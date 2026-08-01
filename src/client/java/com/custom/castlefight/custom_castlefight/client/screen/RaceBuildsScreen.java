@@ -7,7 +7,6 @@ import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoA
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
 import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.component.DataComponentTypes;
@@ -37,7 +36,11 @@ public class RaceBuildsScreen extends CastleFightBaseScreen {
     @Override
     public void onStorageUpdate(MatchUtilities.MatchData data) {
         switch (data){
-            case NEW_BUILD ->  this.build = CLIENT_TEMP.getNewBuild();
+            case NEW_BUILD -> {
+                this.build = CLIENT_TEMP.getNewBuild();
+                giveBuild();
+            }
+            case NAMES_SET -> namesSet = CLIENT_TEMP.getNamesSet();
         }
         clearAndInit();
     }
@@ -73,8 +76,6 @@ public class RaceBuildsScreen extends CastleFightBaseScreen {
                             ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
                             return;
                         }
-                        giveBuild();
-
                     }
             ).build();
             grid.add(buildButtonBuy, row, column++);
@@ -92,7 +93,7 @@ public class RaceBuildsScreen extends CastleFightBaseScreen {
         String buildId = build.getRace()+":"+build.getName()+":"+build.getLevel();
         NbtCompound nbt = new NbtCompound();
         nbt.putString("buildId", buildId);
-        ItemStack stack = new ItemStack(ConstructionBlock.constructionBlock);
+        ItemStack stack = new ItemStack(ConstructionBlock.CONSTRUCTION_BLOCK);
         stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
         ClientPlayNetworking.send(new RequestToGiveC2SPacket(stack));
         client.player.closeScreen();

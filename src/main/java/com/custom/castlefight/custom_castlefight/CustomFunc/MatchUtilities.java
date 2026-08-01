@@ -2,7 +2,6 @@ package com.custom.castlefight.custom_castlefight.CustomFunc;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
-import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -24,13 +23,15 @@ public class MatchUtilities {
         private MatchState matchState;
         private int matchTime = 0;
         private int absoluteMatchTime = 0;
+        private int goldTimer = 200;
+        public static int fullGoldTimer = 200;
         private List<Team> teams = new ArrayList<>();
         private List<UUID> playersInMatch = new ArrayList<>();
         private Set<String> races;
         private boolean needUpdateScreen = false;
-        private Map<UUID,PlayerData> matchPlayersData;
+        private Map<UUID, PlayerData> matchPlayersData;
 
-        public PlayerData getPlayerData(UUID playerId){
+        public PlayerData getPlayerData(UUID playerId) {
             return matchPlayersData.get(playerId);
         }
 
@@ -89,19 +90,34 @@ public class MatchUtilities {
             return match;
         }
 
-        public MatchAnswer choiceRace(UUID playerId, String race){
+        public void addGoldForAll(MinecraftServer server) {
+            needUpdateScreen = true;
+            for (UUID playerId : matchPlayersData.keySet()) {
+                PlayerData data = matchPlayersData.get(playerId);
+                data.addGold();
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+                if (player != null) {
+                    ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(data));
+                    ServerPlayNetworking.send(player, new SendGoldTimerS2CPacket(fullGoldTimer));
+                    LOGGER.info("Игроку: " + player.getName().getString() + data.income + " общее золото: " + data.gold);
+                } else LOGGER.info("Неизвестный игрок");
+            }
+        }
+
+        public MatchAnswer choiceRace(UUID playerId, String race) {
             if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
             if (matchState != MatchState.CHOICE_RACE) return MatchAnswer.INVALID_STAGE;
             if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
             PlayerData data = matchPlayersData.get(playerId);
-            if (data.race == null || data.race.isBlank()){
+            if (data.race == null || data.race.isBlank()) {
                 matchPlayersData.get(playerId).race = race;
                 needUpdateScreen = true;
                 return MatchAnswer.NONE;
             }
             return MatchAnswer.ALREADY_CHOOSE_RACE;
         }
-        public MatchAnswer banRace(String race,UUID playerId) {
+
+        public MatchAnswer banRace(String race, UUID playerId) {
             if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
             if (matchState != MatchState.BAN_RACE) return MatchAnswer.INVALID_STAGE;
             if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
@@ -113,7 +129,6 @@ public class MatchUtilities {
             }
             return MatchAnswer.ALREADY_BAN_RACE;
         }
-
         public void nextStage() {
             switch (matchState) {
                 case SETTINGS -> {
@@ -153,7 +168,8 @@ public class MatchUtilities {
             }
             LOGGER.info(matchState.toString());
         }
-        public boolean hasPlayerInGame(UUID player){
+
+        public boolean hasPlayerInGame(UUID player) {
             if (matchPlayersData.containsKey(player)) return true;
             return false;
         }
@@ -181,7 +197,7 @@ public class MatchUtilities {
             if (matchState != MatchState.START_GAME) return MatchAnswer.INVALID_STAGE;
             if (getAllPlayer().size() < getMaxPlayers()) {
                 playersInMatch.add(player);
-                matchPlayersData.put(player,new PlayerData(player));
+                matchPlayersData.put(player, new PlayerData(player));
             }
             if (getAllPlayer().size() >= getMaxPlayers()) nextStage();
             if (getAllPlayer().size() > getMaxPlayers()) {
@@ -205,15 +221,17 @@ public class MatchUtilities {
             }
             return false;
         }
-        public MatchAnswer addNTeam(int n){
+
+        public MatchAnswer addNTeam(int n) {
             if (matchState != MatchState.START_GAME) return MatchAnswer.INVALID_STAGE;
-            for (TeamColor teamColor : TeamColor.values()){
+            for (TeamColor teamColor : TeamColor.values()) {
                 this.teams.add(new Team(teamColor));
                 n--;
-                if (n<=0) break;
+                if (n <= 0) break;
             }
             return MatchAnswer.NONE;
         }
+
         public MatchAnswer addTeam(TeamColor teamColor) {
             if (matchState != MatchState.START_GAME) return MatchAnswer.INVALID_STAGE;
             for (Team team : this.teams) {
@@ -250,6 +268,10 @@ public class MatchUtilities {
             List<UUID> players = getAllPlayersInTeam();
             players.addAll(playersInMatch);
             return players;
+        }
+
+        public int getGoldTimer() {
+            return goldTimer;
         }
 
         public int getMaxPlayers() {
@@ -303,32 +325,31 @@ public class MatchUtilities {
         public void setTeams(List<Team> teams) {
             this.teams = teams;
         }
-        private void updateMainScreenForAll(MinecraftServer server){
+
+        private void updateDataForAll(MinecraftServer server) {
             PlayerManager playerManager = server.getPlayerManager();
-            for (UUID playerId : getAllPlayer()){
+            for (UUID playerId : getAllPlayer()) {
                 if (playerManager.getPlayer(playerId) == null) continue;
                 ServerPlayerEntity player = playerManager.getPlayer(playerId);
-                if (player.currentScreenHandler instanceof MainGameScreen gameScreen){
-                    ServerPlayNetworking.send(player,new SendMatchStateS2CPacket(matchState));
-                    ServerPlayNetworking.send(player,new SendTimerS2CPacket(matchTime,false));
-                    ServerPlayNetworking.send(player,new SendTimerS2CPacket(absoluteMatchTime,true));
-                    if (playerId == matchPlayersData.get(playerId).getPlayerId()) ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(matchPlayersData.get(playerId)));
+                ServerPlayNetworking.send(player, new SendMatchStateS2CPacket(matchState));
+                ServerPlayNetworking.send(player, new SendTimerS2CPacket(matchTime, false));
+                ServerPlayNetworking.send(player, new SendTimerS2CPacket(absoluteMatchTime, true));
+                if (playerId == matchPlayersData.get(playerId).getPlayerId())
+                    ServerPlayNetworking.send(player, new SendPlayerDataS2CPacket(matchPlayersData.get(playerId)));
 
-                }
             }
         }
+
         public int getAbsoluteMatchTime() {
             return absoluteMatchTime;
         }
 
         protected void tick(MinecraftServer server) {
             switch (this.matchState) {
-                case SETTINGS -> {
-                }
-                case MatchState.START_GAME -> {
+                case SETTINGS, MatchState.START_GAME -> {
                 }
                 case MatchState.CHOICE_TEAM -> {
-                    this.matchTime--;
+                    matchTime--;
                     if (matchTime <= 0) {
                         needUpdateScreen = true;
                         if (!playersInMatch.isEmpty()) {
@@ -341,22 +362,21 @@ public class MatchUtilities {
                         nextStage();
                     }
                 }
-                case MatchState.BAN_RACE -> {
-                    this.matchTime--;
-                    if (matchTime <= 0) {
-                        nextStage();
-                    }
-                }
-                case MatchState.CHOICE_RACE -> {
-                    this.matchTime--;
+                case MatchState.BAN_RACE, MatchState.CHOICE_RACE -> {
+                    matchTime--;
                     if (matchTime <= 0) {
                         nextStage();
                     }
                 }
                 case MatchState.PLAYING -> {
-                    this.matchTime--;
+                    matchTime--;
+                    goldTimer--;
                     if (matchTime <= 0) {
                         nextStage();
+                    }
+                    if (goldTimer <= 0) {
+                        goldTimer = fullGoldTimer;
+                        addGoldForAll(server);
                     }
                 }
                 case MatchState.END_GAME -> {
@@ -364,43 +384,72 @@ public class MatchUtilities {
 
             }
             if (needUpdateScreen) {
-                updateMainScreenForAll(server);
+                updateDataForAll(server);
                 needUpdateScreen = false;
             }
         }
     }
+
     public static class PlayerData {
         private final UUID playerId;
         public boolean canBan = true;
         public TeamColor team;
         public String race;
-        public int gold,income,wood;
-        public static final PacketCodec<RegistryByteBuf,PlayerData> PACKET_CODEC = PacketCodec.of(
+        public int gold, income = 10, wood;
+        public static final PacketCodec<RegistryByteBuf, PlayerData> PACKET_CODEC = PacketCodec.of(
                 PlayerData::write,
                 PlayerData::read
         );
 
-        public PlayerData(UUID id){
+        public PlayerData(UUID id) {
             playerId = id;
+        }
+
+        public void addGold() {
+            gold += income;
+        }
+
+        public MatchAnswer buy(int gold, int wood) {
+            MatchAnswer goldAnswer = spendGold(gold);
+            MatchAnswer woodAnswer = spendWood(wood);
+            if (goldAnswer == MatchAnswer.NONE) return woodAnswer;
+            return goldAnswer;
+        }
+
+        public MatchAnswer spendWood(int wood) {
+            if (this.wood >= wood) {
+                this.wood -= wood;
+                return MatchAnswer.NONE;
+            }
+            return MatchAnswer.NOT_ENOUGH_WOOD;
+        }
+
+        public MatchAnswer spendGold(int gold) {
+            if (this.gold >= gold) {
+                this.gold -= gold;
+                wood += gold;
+                return MatchAnswer.NONE;
+            }
+            return MatchAnswer.NOT_ENOUGH_GOLD;
         }
 
         public UUID getPlayerId() {
             return playerId;
         }
 
-        public void write(RegistryByteBuf buf){
+        public void write(RegistryByteBuf buf) {
             buf.writeUuid(playerId);
             buf.writeBoolean(canBan);
             buf.writeBoolean(team != null);
-            if(team != null)buf.writeEnumConstant(team);
+            if (team != null) buf.writeEnumConstant(team);
             buf.writeBoolean(race != null);
-            if(race != null) buf.writeString(race);
+            if (race != null) buf.writeString(race);
             buf.writeInt(gold);
             buf.writeInt(income);
             buf.writeInt(wood);
         }
 
-        public static PlayerData read(RegistryByteBuf buf){
+        public static PlayerData read(RegistryByteBuf buf) {
             PlayerData data = new PlayerData(buf.readUuid());
             data.canBan = buf.readBoolean();
             if (buf.readBoolean()) data.team = buf.readEnumConstant(TeamColor.class);
@@ -411,6 +460,7 @@ public class MatchUtilities {
             return data;
         }
     }
+
     public static enum MatchAnswer {
         NONE,
         NOT_IN_MATCH,
@@ -425,7 +475,9 @@ public class MatchUtilities {
         NEED_UPDATE,
         ALREADY_BAN_RACE,
         ALREADY_CHOOSE_RACE,
-        INVALID_MATCH
+        INVALID_MATCH,
+        NOT_ENOUGH_GOLD,
+        NOT_ENOUGH_WOOD
     }
 
     public static class MatchManager {
@@ -443,9 +495,9 @@ public class MatchUtilities {
         private MatchManager() {
             for (MatchFormat format : MatchFormat.values()) {
                 waitings.put(format, new ArrayList<>());
-                Match match = new Match(UUID.randomUUID(),formatTeamSize.get(format));
+                Match match = new Match(UUID.randomUUID(), formatTeamSize.get(format));
                 match.addNTeam(formatTeamCount.get(format));
-                nonActiveMatches.put(format,match);
+                nonActiveMatches.put(format, match);
             }
         }
 
@@ -456,15 +508,17 @@ public class MatchUtilities {
         public boolean playerInMatch(UUID player) {
             return playersMatch.get(player) != null;
         }
+
         @Nullable
         public UUID getPlayerMatch(UUID player) {
             return playersMatch.get(player);
         }
 
-        public void addWaiting(UUID player,MatchFormat format){
+        public void addWaiting(UUID player, MatchFormat format) {
             if (playerInMatch(player)) return;
             waitings.get(format).addLast(player);
         }
+
         public void addMatch(Match match) {
             if (!hasId(match.getId())) {
                 this.matches.put(match.getId(), match);
@@ -484,50 +538,55 @@ public class MatchUtilities {
         public Map<MatchFormat, List<UUID>> getWaitings() {
             return new HashMap<>(waitings);
         }
-        public Map<MatchFormat,Integer> getCountPlayer(){
-            Map<MatchFormat,Integer> countPlayer = new HashMap<>();
-            for (MatchFormat format : MatchFormat.values()){
-                countPlayer.put(format,this.nonActiveMatches.get(format).getAllPlayer().size());
+
+        public Map<MatchFormat, Integer> getCountPlayer() {
+            Map<MatchFormat, Integer> countPlayer = new HashMap<>();
+            for (MatchFormat format : MatchFormat.values()) {
+                countPlayer.put(format, this.nonActiveMatches.get(format).getAllPlayer().size());
             }
             return countPlayer;
         }
-        public boolean playerCanViewLobby(UUID playerId){
+
+        public boolean playerCanViewLobby(UUID playerId) {
             MatchUtilities.Match match = getMatch(playersMatch.get(playerId));
             if (match == null || match.getMatchState() == MatchUtilities.MatchState.START_GAME) return true;
             return false;
         }
+
         public Map<MatchFormat, Match> getNonActiveMatches() {
             return nonActiveMatches;
         }
-        public void updateLobbyForAll(MinecraftServer server){
-            Map<MatchFormat,Integer> countPlayer = getCountPlayer();
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()){
-                if (player.currentScreenHandler instanceof LobbyScreen screen && playerCanViewLobby(player.getUuid())){
-                   LOGGER.info("Игроку "+ player.getName() +"обновляется экран");
-                    ServerPlayNetworking.send(player,new SendCountPlayerS2CPacket(countPlayer));
+
+        public void updateLobbyForAll(MinecraftServer server) {
+            Map<MatchFormat, Integer> countPlayer = getCountPlayer();
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (player.currentScreenHandler instanceof LobbyScreen screen && playerCanViewLobby(player.getUuid())) {
+                    LOGGER.info("Игроку " + player.getName() + "обновляется экран");
+                    ServerPlayNetworking.send(player, new SendCountPlayerS2CPacket(countPlayer));
                 }
             }
         }
+
         public void tick(MinecraftServer server) {
             for (Match match : this.matches.values()) {
                 match.tick(server);
             }
             boolean needUpdateLobby = false;
-            for (MatchFormat format : nonActiveMatches.keySet()){
+            for (MatchFormat format : nonActiveMatches.keySet()) {
                 if (nonActiveMatches.get(format) == null) {
-                    Match match1 = new Match(UUID.randomUUID(),formatTeamSize.get(format));
+                    Match match1 = new Match(UUID.randomUUID(), formatTeamSize.get(format));
                     match1.addNTeam(formatTeamCount.get(format));
-                    nonActiveMatches.put(format,match1);
+                    nonActiveMatches.put(format, match1);
                     continue;
                 }
-                if (nonActiveMatches.get(format) instanceof Match match){
-                    if (match.matchState != MatchState.SETTINGS && match.matchState != MatchState.START_GAME){
-                        matches.put(match.getId(),match);
-                        Match match1 = new Match(UUID.randomUUID(),formatTeamSize.get(format));
+                if (nonActiveMatches.get(format) instanceof Match match) {
+                    if (match.matchState != MatchState.SETTINGS && match.matchState != MatchState.START_GAME) {
+                        matches.put(match.getId(), match);
+                        Match match1 = new Match(UUID.randomUUID(), formatTeamSize.get(format));
                         match1.addNTeam(formatTeamCount.get(format));
-                        nonActiveMatches.put(format,match1);
-                        LOGGER.info("Матч формата: \""+format.toString()+"\" начался");
-                        for (UUID playerId : match.getAllPlayer()){
+                        nonActiveMatches.put(format, match1);
+                        LOGGER.info("Матч формата: \"" + format.toString() + "\" начался");
+                        for (UUID playerId : match.getAllPlayer()) {
                             ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
                             if (player != null) player.closeHandledScreen();
                         }
@@ -536,10 +595,10 @@ public class MatchUtilities {
                 }
             }
 
-            for (MatchFormat format : waitings.keySet()){
-                if ( !waitings.get(format).isEmpty()){
+            for (MatchFormat format : waitings.keySet()) {
+                if (!waitings.get(format).isEmpty()) {
                     ServerPlayerEntity player = null;
-                    while (player == null){
+                    while (player == null) {
                         UUID playerId = waitings.get(format).removeFirst();
                         player = server.getPlayerManager().getPlayer(playerId);
                     }
@@ -568,7 +627,8 @@ public class MatchUtilities {
             return matches;
         }
     }
-    public static enum MatchData{
+
+    public static enum MatchData {
         NONE,
         RACE,
         NAME,
@@ -585,8 +645,11 @@ public class MatchUtilities {
         MATCH_STATE,
         TIMER,
         FULL_TIMER,
-        PLAYER_DATA
+        PLAYER_DATA,
+        GOLD_TIMER,
+        PLAYER_IN_MATCH
     }
+
     public enum MatchState {
         NOT_ACTIVE,
         SETTINGS,
@@ -655,15 +718,16 @@ public class MatchUtilities {
             this.players.remove(player);
         }
 
-        public List<String> getPlayersName(MinecraftServer server){
+        public List<String> getPlayersName(MinecraftServer server) {
             List<String> playersList = new ArrayList<>();
-            for (UUID playerId : players){
+            for (UUID playerId : players) {
                 playersList.add(server.getPlayerManager().getPlayer(playerId).getName().getString());
             }
             if (!playersList.isEmpty()) LOGGER.info(playersList.getFirst());
             return playersList;
 
         }
+
         public List<UUID> getPlayers() {
             return players;
         }
@@ -741,21 +805,23 @@ public class MatchUtilities {
         TwoVsTwo,
         FourVsFour
     }
+
     public static Map<MatchFormat, Integer> formatTeamCount = Map.of(
-            MatchFormat.OneVsOne,2,
-            MatchFormat.TwoVsTwo,2,
-            MatchFormat.FourVsFour,2
+            MatchFormat.OneVsOne, 2,
+            MatchFormat.TwoVsTwo, 2,
+            MatchFormat.FourVsFour, 2
     );
     public static Map<MatchFormat, Integer> formatTeamSize = Map.of(
-            MatchFormat.OneVsOne,1,
-            MatchFormat.TwoVsTwo,2,
-            MatchFormat.FourVsFour,4
+            MatchFormat.OneVsOne, 1,
+            MatchFormat.TwoVsTwo, 2,
+            MatchFormat.FourVsFour, 4
     );
-    public static Map<MatchFormat,String> formatDDescription = Map.of(
-            MatchFormat.OneVsOne,"Стандартный матч 1x1",
-            MatchFormat.TwoVsTwo,"Стандартный матч 2x2",
-            MatchFormat.FourVsFour,"Стандартный матч 4x4"
+    public static Map<MatchFormat, String> formatDDescription = Map.of(
+            MatchFormat.OneVsOne, "Стандартный матч 1x1",
+            MatchFormat.TwoVsTwo, "Стандартный матч 2x2",
+            MatchFormat.FourVsFour, "Стандартный матч 4x4"
     );
+
     public enum ActionPlayer {
         NONE,
         JOIN_MATCH,
@@ -814,7 +880,7 @@ public class MatchUtilities {
                 case JOIN_MATCH -> {
                     return this.format != null;
                 }
-                case GET_RACES,GET_TEAMS,GET_MATCHES,OPEN_LOBBY,OPEN_MAIN-> {
+                case GET_RACES, GET_TEAMS, GET_MATCHES, OPEN_LOBBY, OPEN_MAIN -> {
                     return true;
                 }
             }

@@ -2,6 +2,8 @@ package com.custom.castlefight.custom_castlefight.client;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.util.Util;
+import org.apache.commons.compress.archivers.sevenz.CLI;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
@@ -18,12 +20,35 @@ public class RegisterReciverS2CPackets {
         registerMatchStateReceiver();
         registerTimerReceiver();
         registerPlayerDataReceiver();
+        registerGoldTimerReceiver();
+    }
+    public static void registerMatchActiveReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(SendMatchActiveS2CPacket.ID,(payload,context) ->{
+           context.client().execute(()->{
+               CLIENT_TEMP.setPlayerInMatch(payload.active());
+           });
+        });
+    }
+    public static void registerGoldTimerReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(SendGoldTimerS2CPacket.ID,(payload,context)->{
+            context.client().execute(()->{
+                CLIENT_TEMP.setGoldTimer(payload.timer());
+            });
+        });
     }
     public static void registerPlayerDataReceiver(){
         ClientPlayNetworking.registerGlobalReceiver(
             SendPlayerDataS2CPacket.ID,
             (payload,context) -> {
-                CLIENT_TEMP.setPlayerData(payload.data());
+                context.client().execute(()->{
+                    if (CLIENT_TEMP.getPlayerData() == null) CLIENT_TEMP.setPlayerData(payload.data());
+                    else{
+                        if (CLIENT_TEMP.getPlayerData().gold < payload.data().gold){
+                            CLIENT_TEMP.lastGoldEarn = Util.getMeasuringTimeMs();
+                        }
+                        CLIENT_TEMP.setPlayerData(payload.data());
+                    }
+                });
             });
     }
     public static void registerTimerReceiver(){

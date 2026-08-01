@@ -151,8 +151,11 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                 }
                 fragment = new ChoiseRaceFragment(races);
             }
+            case PLAYING -> {
+
+            }
         }
-        grid = fragment.buildWidgets(this);
+        if (fragment != null)grid = fragment.buildWidgets(this);
         if (grid == null) return;
         grid.setRowSpacing(5);
         grid.setColumnSpacing(6);

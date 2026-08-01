@@ -84,5 +84,9 @@ public class Draw {
         context.fill(x, y, x + width, y + height, 0xFF525252);
         context.fill(x, y, x + (int) (width * progress), y + height, 0xFF0000FF);
     }
+    public static void drawSimpleProgressBar(DrawContext context, int x, int y, int width, int height, float progress,int color) {
+        context.fill(x, y, x + width, y + height, 0xFF525252);
+        context.fill(x, y, x + (int) (width * progress), y + height, color);
+    }
 
 }

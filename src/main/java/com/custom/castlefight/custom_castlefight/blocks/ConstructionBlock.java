@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.BlockPredicatesComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
@@ -17,6 +18,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -35,11 +37,11 @@ public class ConstructionBlock extends Block {
     public static final RegistryKey<Block> KEY = RegistryKey.of(RegistryKeys.BLOCK,ID);
     public static final RegistryKey<Item> Item_Key = RegistryKey.of(RegistryKeys.ITEM,ID);
 
-    public static final Block constructionBlock = Blocks.register(KEY,
+    public static final Block CONSTRUCTION_BLOCK = Blocks.register(KEY,
             ConstructionBlock::new,
             Settings.create()
     );
-    public static final Item ConstructionBlockItem = Items.register(constructionBlock,
+    public static final Item CONSTRUCTION_BLOCK_ITEM = Items.register(CONSTRUCTION_BLOCK,
             ConstructionItem::new,
             new Item.Settings().maxCount(1)
     );
