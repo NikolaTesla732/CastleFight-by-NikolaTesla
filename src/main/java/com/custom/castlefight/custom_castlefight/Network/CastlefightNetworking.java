@@ -35,6 +35,8 @@ public class CastlefightNetworking {
         SendTimerS2CPacket.register();
         SendPlayerDataS2CPacket.register();
         SendGoldTimerS2CPacket.register();
+        SendRacesManagerS2CPacket.register();
+        SendMatchActiveS2CPacket.register();
     }
     public static void registerScreenHandler(){
         ScanScreen.register();

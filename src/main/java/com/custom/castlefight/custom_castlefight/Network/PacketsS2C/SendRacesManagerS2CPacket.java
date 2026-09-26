@@ -1,0 +1,26 @@
+package com.custom.castlefight.custom_castlefight.Network.PacketsS2C;
+
+import com.custom.castlefight.custom_castlefight.CustomFunc.BuildUtilities;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.util.Identifier;
+
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.MOD_ID;
+
+public record SendRacesManagerS2CPacket(BuildUtilities.racesManager manager) implements CustomPayload {
+    public static Identifier RAW_ID = Identifier.of(MOD_ID,"send_races_manager");
+    public static CustomPayload.Id<SendRacesManagerS2CPacket> ID = new Id<>(RAW_ID);
+    public static PacketCodec<RegistryByteBuf,SendRacesManagerS2CPacket> PACKET_CODEC = BuildUtilities.racesManager.PACKET_CODEC.xmap(
+            SendRacesManagerS2CPacket::new,
+            SendRacesManagerS2CPacket::manager
+    );
+    public static void register(){
+        PayloadTypeRegistry.playS2C().register(ID,PACKET_CODEC);
+    }
+    @Override
+    public Id<? extends CustomPayload> getId() {
+        return ID;
+    }
+}

@@ -5,17 +5,19 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.StorageUpdateListene
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.CastleFightBaseScreenHandler;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
 public abstract class CastleFightBaseScreenHandled<T extends CastleFightBaseScreenHandler>
-                                                extends HandledScreen<T>
-                                                implements StorageUpdateListener {
+        extends HandledScreen<T>
+        implements StorageUpdateListener {
     public CastleFightBaseScreenHandled(T handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
+
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
         context.drawText(
@@ -27,6 +29,7 @@ public abstract class CastleFightBaseScreenHandled<T extends CastleFightBaseScre
                 false
         );
     }
+
     @Override
     protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
         context.fill(0, 0, this.width, this.height, 0x88000000);
@@ -46,4 +49,11 @@ public abstract class CastleFightBaseScreenHandled<T extends CastleFightBaseScre
 
     @Override
     public abstract void onStorageUpdate(MatchUtilities.MatchData data);
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (getFocused() != null && getFocused().isFocused() && client.options.inventoryKey.matchesKey(input))
+            return true;
+        return super.keyPressed(input);
+    }
 }

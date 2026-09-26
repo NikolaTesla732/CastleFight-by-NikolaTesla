@@ -3,21 +3,19 @@ package com.custom.castlefight.custom_castlefight.client.screen.handled;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoClientMatchActionC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.MainGameScreen;
-import com.custom.castlefight.custom_castlefight.client.render.Draw;
+import com.custom.castlefight.custom_castlefight.client.screen.render.Draw;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.BanRaceFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.ChoiseRaceFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.ChoiseTeamFragment;
 import com.custom.castlefight.custom_castlefight.client.screen.screen_fragment.IScreenFragment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.client.gui.widget.SimplePositioningWidget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -150,9 +148,6 @@ public class MainGameScreenHandled extends CastleFightBaseScreenHandled<MainGame
                     return;
                 }
                 fragment = new ChoiseRaceFragment(races);
-            }
-            case PLAYING -> {
-
             }
         }
         if (fragment != null)grid = fragment.buildWidgets(this);

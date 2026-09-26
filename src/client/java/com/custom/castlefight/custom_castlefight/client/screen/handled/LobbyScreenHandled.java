@@ -5,8 +5,6 @@ import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoA
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoClientMatchActionC2SPacket;
 import com.custom.castlefight.custom_castlefight.Network.screenhandler.LobbyScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.client.gui.widget.TextWidget;
@@ -59,7 +57,7 @@ public class LobbyScreenHandled extends CastleFightBaseScreenHandled<LobbyScreen
                     (button1 -> {
                         LOGGER.info("Нажатие");
                         if (nextStageMode){
-                            MatchUtilities.AdminMatchAction action = new MatchUtilities.AdminMatchAction(MatchUtilities.ActionAdmin.NEXT_STAGE);
+                            MatchUtilities.AdminMatchAction action = new MatchUtilities.AdminMatchAction(MatchUtilities.ActionAdmin.RUN_MATCH);
                             action.setMatchFormat(format);
                             ClientPlayNetworking.send(new RequestToDoAdminActionC2SPacket(action));
                             return;

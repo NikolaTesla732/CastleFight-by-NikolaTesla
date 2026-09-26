@@ -3,6 +3,7 @@ package com.custom.castlefight.custom_castlefight.client.screen;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.CustomFunc.StorageUpdateListener;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 
 import java.util.HashMap;
@@ -35,4 +36,11 @@ public abstract class CastleFightBaseScreen extends Screen implements StorageUpd
 
     @Override
     public abstract void onStorageUpdate(MatchUtilities.MatchData data);
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (getFocused() != null && getFocused().isFocused() && client.options.inventoryKey.matchesKey(input)) return true;
+        return super.keyPressed(input);
+    }
+
 }

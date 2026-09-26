@@ -37,9 +37,6 @@ public record RequestToGiveC2SPacket(ItemStack ToGive) implements CustomPayload 
 
     public static void receive(RequestToGiveC2SPacket payload,
                                ServerPlayNetworking.Context context) {
-
         context.player().getInventory().insertStack(payload.ToGive);
-
-
     }
 }

@@ -7,11 +7,13 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.StorageUpdateListene
 import java.util.*;
 
 public class ClientTempStorage {
-
-    public ClientTempStorage() {
+    private static final ClientTempStorage clientTempStorage = new ClientTempStorage();
+    private ClientTempStorage() {
 
     }
-
+    public static ClientTempStorage getInstance(){
+        return clientTempStorage;
+    }
     private final List<StorageUpdateListener> listeners = new ArrayList<>();
     private String race, name;
     private int level, timer, fullTimer, goldTimer = MatchUtilities.Match.fullGoldTimer;
@@ -26,10 +28,11 @@ public class ClientTempStorage {
     private MatchUtilities.MatchState matchState;
     private MatchUtilities.PlayerData playerData;
     private boolean playerInMatch = false;
+    private BuildUtilities.racesManager raceManager;
     public int goldEarnAnimationTime = 150;
     public long lastGoldEarn = 0;
-    public int goldClip = 0;
     public int animationTime = goldEarnAnimationTime * 8;
+    public long gameStartTime = 0;
 
     public void subscribe(StorageUpdateListener listener) {
         if (!listeners.contains(listener)) listeners.add(listener);
@@ -63,6 +66,15 @@ public class ClientTempStorage {
     public void setGoldTimer(int goldTimer) {
         this.goldTimer = goldTimer;
         notifyListeners(MatchUtilities.MatchData.GOLD_TIMER);
+    }
+
+    public BuildUtilities.racesManager getRaceManager() {
+        return raceManager;
+    }
+
+    public void setRaceManager(BuildUtilities.racesManager raceManager) {
+        this.raceManager = raceManager;
+        notifyListeners(MatchUtilities.MatchData.RACE_MANAGER);
     }
 
     public MatchUtilities.PlayerData getPlayerData() {

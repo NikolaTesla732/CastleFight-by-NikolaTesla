@@ -30,14 +30,14 @@ public class ScanBlock extends Block {
 
     private static final Identifier ScanBlock_ID = Identifier.of(Custom_castlefight.MOD_ID,"scan_block");
     public static final RegistryKey<Block> key = RegistryKey.of(RegistryKeys.BLOCK,ScanBlock_ID);
-    public static final Block ScanBlock = Blocks.register(key,
+    public static final Block SCAN_BLOCK = Blocks.register(key,
             ScanBlock::new,
             AbstractBlock.Settings.create()
     );
     public static final RegistryKey<Item> key_item =
             RegistryKey.of(RegistryKeys.ITEM, ScanBlock_ID);
 
-    public static final Item ScanItems = Items.register(ScanBlock,
+    public static final Item SCAN_ITEMS = Items.register(SCAN_BLOCK,
             BlockItem::new,
             new Item.Settings().maxCount(1)
     );

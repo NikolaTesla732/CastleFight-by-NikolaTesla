@@ -1,7 +1,8 @@
-package com.custom.castlefight.custom_castlefight.client.render;
+package com.custom.castlefight.custom_castlefight.client.screen.render;
 
 import com.custom.castlefight.custom_castlefight.blocks.blockitems.ConstructionItem;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -13,6 +14,8 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.joml.Matrix4f;
+
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class Draw {
     public static void drawBox(MatrixStack matrices,
@@ -87,6 +90,12 @@ public class Draw {
     public static void drawSimpleProgressBar(DrawContext context, int x, int y, int width, int height, float progress,int color) {
         context.fill(x, y, x + width, y + height, 0xFF525252);
         context.fill(x, y, x + (int) (width * progress), y + height, color);
+    }
+    public static void drawBigText(float size,DrawContext context, TextRenderer textRenderer,String text,int x,int y,int color,boolean shadow){
+        context.getMatrices().pushMatrix();
+        context.getMatrices().scale(size);
+        context.drawText(textRenderer,text,x,y,color,shadow);
+        context.getMatrices().popMatrix();
     }
 
 }

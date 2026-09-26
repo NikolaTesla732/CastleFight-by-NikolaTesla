@@ -71,10 +71,10 @@ public class BuildTemplateAction {
     }
 
     public void setRace(String race){
-        this.race = BuildUtilities.BuildTemplate.normalizeName(race);
+        this.race = BuildUtilities.BuildTemplate.normalize(race);
     }
     public void setName(String name){
-        this.name = BuildUtilities.BuildTemplate.normalizeName(name);
+        this.name = BuildUtilities.BuildTemplate.normalize(name);
     }
     public void setLevel(int level){
         this.level = level;

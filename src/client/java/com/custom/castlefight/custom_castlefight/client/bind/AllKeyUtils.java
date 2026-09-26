@@ -9,7 +9,6 @@ public class AllKeyUtils {
     public static void register(){
         AdminKey.register();
         LobbyKey.register();
-        RaceKey.register();
         ShopKey.register();
         MainGameKey.register();
     }

@@ -1,10 +1,12 @@
 package com.custom.castlefight.custom_castlefight.client;
 
+import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsS2C.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.Util;
 import org.apache.commons.compress.archivers.sevenz.CLI;
 
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
 
 public class RegisterReciverS2CPackets {
@@ -21,6 +23,16 @@ public class RegisterReciverS2CPackets {
         registerTimerReceiver();
         registerPlayerDataReceiver();
         registerGoldTimerReceiver();
+        registerMatchActiveReceiver();
+        registerRacesManagerReceiver();
+    }
+    public static void registerRacesManagerReceiver(){
+        ClientPlayNetworking.registerGlobalReceiver(SendRacesManagerS2CPacket.ID,
+                ((payload,context) ->{
+                   context.client().execute(()->{
+                       CLIENT_TEMP.setRaceManager(payload.manager());
+                   });
+                }));
     }
     public static void registerMatchActiveReceiver(){
         ClientPlayNetworking.registerGlobalReceiver(SendMatchActiveS2CPacket.ID,(payload,context) ->{
@@ -47,6 +59,7 @@ public class RegisterReciverS2CPackets {
                             CLIENT_TEMP.lastGoldEarn = Util.getMeasuringTimeMs();
                         }
                         CLIENT_TEMP.setPlayerData(payload.data());
+                        LOGGER.info("Пришли данные игрока");
                     }
                 });
             });
@@ -68,6 +81,10 @@ public class RegisterReciverS2CPackets {
                 ((payload,context) -> {
                     context.client().execute(() -> {
                         CLIENT_TEMP.setMatchState(payload.matchState());
+                        if (CLIENT_TEMP.getMatchState() == MatchUtilities.MatchState.PLAYING && CLIENT_TEMP.gameStartTime <= 0) {
+                            CLIENT_TEMP.gameStartTime = Util.getMeasuringTimeMs();
+                            LOGGER.info(String.valueOf(Custom_castlefightClient.CLIENT_TEMP.gameStartTime));
+                        }
                     });
                 })
         );

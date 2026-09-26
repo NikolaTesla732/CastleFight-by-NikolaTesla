@@ -5,7 +5,6 @@ import com.custom.castlefight.custom_castlefight.CustomFunc.BuildTemplateAction;
 import com.custom.castlefight.custom_castlefight.CustomFunc.MatchUtilities;
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoActionWithTemplatesC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.GridWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -46,6 +45,11 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
     public void onStorageUpdate(MatchUtilities.MatchData data) {
         switch (data) {
             case LEVELS_SET -> levelsSet = CLIENT_TEMP.getLevelsSet();
+            case NEW_BUILD -> {
+                build = CLIENT_TEMP.getNewBuild();
+                onLevelClicked();
+                return;
+            }
         }
         clearAndInit();
     }
@@ -73,6 +77,9 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
                 }
         ).build();
         this.grid.add(returnButton, 0, 0);
+        if (build != null){
+            buildEditWidgets();
+        }
         if (this.levelsSet.isEmpty()) {
             BuildTemplateAction action = new BuildTemplateAction();
             action.setActionGetLevelsSet();
@@ -80,29 +87,22 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
             action.setName(name);
             ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
         }
-        if (needShowBuild && build != null){
-            onLevelClicked();
-            needShowBuild = false;
-        }
 
         for (int level : levelsSet) {
             ButtonWidget buildButtonBuy = ButtonWidget.builder(
                     Text.literal(String.valueOf(level)),
                     (ButtonWidget.PressAction) b -> {
-                        if (build != null) onLevelClicked();
-                        else {
-                            BuildTemplateAction action = new BuildTemplateAction();
-                            action.setActionGetBuild();
-                            action.setRace(race);
-                            action.setName(name);
-                            action.setLevel(level);
-                            ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
-                        }
+                        BuildTemplateAction action = new BuildTemplateAction();
+                        action.setActionGetBuild();
+                        action.setRace(race);
+                        action.setName(name);
+                        action.setLevel(level);
+                        ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
                     }
-            ).size(50, 50).build();
+            ).width(30).build();
             grid.add(buildButtonBuy, row++, column);
         }
-        this.grid.setPosition(this.width / 2 - 210, this.height / 2 - 110);
+        this.grid.setPosition(this.width / 2 - 220, this.height / 2 - 110);
         this.grid.refreshPositions();
         this.grid.forEachChild(this::addDrawableChild);
     }
@@ -111,7 +111,6 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
         this.remove = !this.remove;
         clearAndInit();
     }
-
     protected void onLevelClicked() {
         if (this.remove) {
             BuildTemplateAction action = new BuildTemplateAction();
@@ -120,9 +119,10 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
             ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
             this.levelsSet.clear();
             this.build = null;
-            clearAndInit();
-            return;
         }
+        clearAndInit();
+    }
+    protected void buildEditWidgets() {
         TextWidget nameText = new TextWidget(
                 Text.literal("Название " + build.getDisplayName()),
                 this.getTextRenderer()
@@ -202,16 +202,16 @@ public class AdminLevelScreen extends CastleFightBaseScreen {
                         return;
                     }
                     if (!nameInput.getText().isBlank() &&
-                            !BuildTemplate.normalizeName(nameInput.getText()).equals(build.getName())) {
+                            !BuildTemplate.normalize(nameInput.getText()).equals(build.getName())) {
                         client.setScreen(new AdminBuildsScreen(
                                 this.buildScreen.getAdminScreen(),
-                                BuildTemplate.normalizeName(this.race))
+                                BuildTemplate.normalize(this.race))
                         );
                         this.build = null;
                         return;
                     }
                     this.build = null;
-                    client.setScreen(new AdminLevelScreen(this.buildScreen, race, name));
+                    clearAndInit();
                 }
         ).build();
         this.grid.add(button, 7, 2);

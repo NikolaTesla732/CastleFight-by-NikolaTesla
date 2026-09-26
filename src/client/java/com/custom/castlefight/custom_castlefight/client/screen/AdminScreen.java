@@ -8,7 +8,6 @@ import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoA
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToDoAdminActionC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tab.GridScreenTab;
 import net.minecraft.client.gui.tab.Tab;
 import net.minecraft.client.gui.tab.TabManager;
@@ -21,23 +20,20 @@ import net.minecraft.text.Text;
 import java.util.*;
 
 import static com.custom.castlefight.custom_castlefight.client.Custom_castlefightClient.CLIENT_TEMP;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
 
 public class AdminScreen extends CastleFightBaseScreen {
     private TabManager tab_manager;
-    private TabNavigationWidget tab_navigation;
+    private TabNavigationWidget tabNavigation;
     private MainTab main_tab;
     private Tab2 tab2;
     private Set<String> raceSet = new HashSet<>();
     private List<UUID> matches = new ArrayList<>();
     private ButtonWidget modeBuild;
-    private boolean removeMode = false;
+    private boolean removeMode = false, waitingRace = false;
 
     public AdminScreen(Text title) {
         super(title);
-    }
-
-    public void setRaces(Set<String> races) {
-        this.raceSet = races;
     }
 
     public static boolean isInt(String text) {
@@ -53,7 +49,8 @@ public class AdminScreen extends CastleFightBaseScreen {
     public void onStorageUpdate(MatchUtilities.MatchData data) {
         switch (data){
             case RACES_SET -> {
-                setRaces(CLIENT_TEMP.getRacesSet());
+                raceSet = CLIENT_TEMP.getRacesSet();
+                LOGGER.info(raceSet.toString());
             }
         }
         clearAndInit();
@@ -63,25 +60,25 @@ public class AdminScreen extends CastleFightBaseScreen {
         super.init();
         //Объявление логики работы TabManager
         this.tab_manager = new TabManager(
-                widget -> this.addDrawableChild(widget),// При открытии вкладки-показать её widget
-                widget -> this.remove(widget)// при закрытии вкладки-закрыть её вкладки
+                this::addDrawableChild,// При открытии вкладки-показать её widget
+                this::remove// при закрытии вкладки-закрыть её вкладки
         );
         //Объявление вкладок
         this.main_tab = new MainTab();
         this.tab2 = new Tab2();
         //Объявление полоски вкладок
-        this.tab_navigation = TabNavigationWidget.builder(this.tab_manager, this.width)
+        this.tabNavigation = TabNavigationWidget.builder(this.tab_manager, this.width)
                 .tabs(new Tab[]{this.main_tab, this.tab2})
                 .build();
-        this.tab_navigation.init();
-        this.addDrawableChild(this.tab_navigation); // Показываем полоску навигации
+        this.tabNavigation.init();
+        this.addDrawableChild(this.tabNavigation); // Показываем полоску навигации
 
         // Задаём область вкладки
         this.tab_manager.setTabArea(new ScreenRect(
+                10,
                 20,
-                40,
-                this.width - 40,
-                this.height - 70
+                this.width - 20,
+                this.height - 20
         ));
         this.tab_manager.setCurrentTab(this.main_tab, true);
     }
@@ -100,10 +97,11 @@ public class AdminScreen extends CastleFightBaseScreen {
             super(Text.literal("Шаблоны"));
             this.grid.setColumnSpacing(8);
             this.grid.setRowSpacing(6);
-            if (raceSet.isEmpty()) {
+            if (raceSet.isEmpty() && !waitingRace) {
                 BuildTemplateAction action = new BuildTemplateAction();
                 action.setActionGetAllRaces();
                 ClientPlayNetworking.send(new RequestToDoActionWithTemplatesC2SPacket(action));
+                waitingRace = true;
                 return;
             }
             modeBuild = ButtonWidget.builder(
@@ -143,7 +141,7 @@ public class AdminScreen extends CastleFightBaseScreen {
 
     }
 
-    //Вторая вкладка, пока тестовая
+    //Вторая вкладка
     class Tab2 extends GridScreenTab {
         private final ButtonWidget buttonOpenMatchManager;
         private final ButtonWidget buttonStartGame;
@@ -191,7 +189,15 @@ public class AdminScreen extends CastleFightBaseScreen {
                         }
                     })
             ).build();
+            ButtonWidget skipButton = ButtonWidget.builder(
+                    Text.literal("Пропустить текущую стадию"),
+                    (button -> {
+                        MatchUtilities.AdminMatchAction action = new MatchUtilities.AdminMatchAction(MatchUtilities.ActionAdmin.NEXT_STAGE);
+                        ClientPlayNetworking.send(new RequestToDoAdminActionC2SPacket(action));
+                    })
 
+            ).build();
+            this.grid.add(skipButton,1,0);
             this.grid.add(mapText,1,1);
             this.grid.add(PlayerInTeamText,0,1);
             this.grid.add(mapField,1,2);

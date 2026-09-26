@@ -53,17 +53,17 @@ public class AdminBuildsScreen extends CastleFightBaseScreen {
         int column = 0;
         int maxBuildInRow = 5;
         this.modeButton = ButtonWidget.builder(
-                Text.literal((removeMode) ? "Режим удаления" : "Режим редактирования"),
+                Text.literal((removeMode) ? "удаление" : "редактирование"),
                 (ButtonWidget.PressAction) b ->{
                     modeAction();
                 }
-        ).build();
+        ).size(120,20).build();
         ButtonWidget returnButton = ButtonWidget.builder(
                 Text.literal("Назад"),
                 (ButtonWidget.PressAction) b -> {
                     client.setScreen(getAdminScreen());
                 }
-        ).build();
+        ).size(120,20).build();
         this.grid.add(returnButton,0,0);
         this.grid.add(modeButton,0,1);
         if (this.raceBuilds.isEmpty()){
@@ -90,14 +90,14 @@ public class AdminBuildsScreen extends CastleFightBaseScreen {
                         }
                         client.setScreen(new AdminLevelScreen(this,race,buildName));
                     }
-            ).build();
+            ).size(120,20).build();
             grid.add(buildButtonBuy,row,column++);
             if(column > maxBuildInRow){
                 row++;
                 column=0;
             }
         }
-        this.grid.setPosition(this.width/2-210,this.height/2-110);
+        this.grid.setPosition(15,15);
         this.grid.refreshPositions();
         this.grid.forEachChild(this::addDrawableChild);
     }

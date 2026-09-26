@@ -32,10 +32,16 @@ public record RequestToDoAdminActionC2SPacket(MatchUtilities.AdminMatchAction ad
                     MatchUtilities.MatchManager.getInstance().addMatch(payload.adminMatchAction.getMatch());
                     LOGGER.info(payload.adminMatchAction.getMatch().getId().toString());
                 }
-                case NEXT_STAGE -> {
+                case RUN_MATCH -> {
                     MatchUtilities.Match match = manager.getNonActiveMatches().get(payload.adminMatchAction.getMatchFormat());
                     LOGGER.info("Следующая стадия");
-                    match.nextStage();
+                    match.skipStage(1);
+                }
+                case NEXT_STAGE -> {
+                    MatchUtilities.Match match = manager.getMatch(
+                            manager.getPlayerMatch(context.player().getUuid())
+                    );
+                    match.skipStage(1);
                 }
             }
         });

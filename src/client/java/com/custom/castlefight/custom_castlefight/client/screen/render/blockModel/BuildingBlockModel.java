@@ -1,4 +1,4 @@
-package com.custom.castlefight.custom_castlefight.client.render.blockModel;
+package com.custom.castlefight.custom_castlefight.client.screen.render.blockModel;
 
 
 import com.custom.castlefight.custom_castlefight.blocks.BuildingBlock;

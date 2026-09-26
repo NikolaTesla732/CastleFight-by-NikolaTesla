@@ -8,6 +8,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryEntryLookup;
@@ -62,27 +63,43 @@ public class BuildUtilities {
         private final int income;
         private final int spawnCD;
         private final int cost;
+        private final int wood;
         private final String displayName;
 
         public BuildTemplate(String name, String race, int level,
                              List<BlockWithData> blocks, int income, int spawnCD, int cost) {
             this.blocks = blocks;
-            this.name = normalizeName(name);
+            this.name = normalize(name);
             this.level = level;
             this.income = income;
             this.spawnCD = spawnCD;
             this.cost = cost;
             this.displayName = name;
-            this.race = normalizeName(race);
+            this.race = normalize(race);
+            this.wood = 0;
+        }
+        public BuildTemplate(String name, String race, int level,
+                             List<BlockWithData> blocks, int income, int spawnCD, int cost,int wood){
+            this.blocks = blocks;
+            this.name = normalize(name);
+            this.level = level;
+            this.income = income;
+            this.spawnCD = spawnCD;
+            this.cost = cost;
+            this.displayName = name;
+            this.race = normalize(race);
+            this.wood = wood;
         }
 
-        public static String normalizeName(String rawName) {
+        public static String normalize(String rawName) {
             return rawName.toLowerCase(Locale.ROOT).replace(' ', '_');
         }
-
+        public rawBuildTemplate getRaw(){
+            return new rawBuildTemplate(name,race,level,income,spawnCD,cost,displayName);
+        }
         public BuildTemplate(NbtCompound data, RegistryWrapper.WrapperLookup lookup) {
             this.displayName = data.getString("display_name", "");
-            this.name = normalizeName(displayName);
+            this.name = normalize(displayName);
             this.race = data.getString("race", "тьма");
             this.income = data.getInt("income", 0);
             this.spawnCD = data.getInt("spawnCD", 40);
@@ -106,6 +123,7 @@ public class BuildUtilities {
             }
 
             this.blocks = blocks;
+            this.wood = data.getInt("wood",0);
         }
 
         public List<BlockWithData> getBlocks() {
@@ -168,6 +186,7 @@ public class BuildUtilities {
             }
 
             nbt.put("blocks", nbtList);
+            nbt.putInt("wood",wood);
             return nbt;
         }
 
@@ -182,6 +201,10 @@ public class BuildUtilities {
             for (BlockWithData block : this.blocks) {
                 block.write(buf);
             }
+        }
+
+        public int getWood() {
+            return wood;
         }
 
         public static BuildTemplate read(RegistryByteBuf buf) {
@@ -204,7 +227,74 @@ public class BuildUtilities {
                 BuildTemplate::read
         );
     }
+    public static record raceBuilds(List<rawBuildTemplate> builds){
+        public void write(RegistryByteBuf buf){
+            buf.writeInt(builds.size());
+            for (rawBuildTemplate template : builds){
+                template.write(buf);
+            }
+        }
+        public static raceBuilds read(RegistryByteBuf buf){
+            List<rawBuildTemplate> builds = new ArrayList<>();
+            int n = buf.readInt();
+            for (int i = 0; i < n;i++){
+                builds.add(rawBuildTemplate.read(buf));
+            }
+            return new raceBuilds(builds);
+        }
+    }
+    public static class racesManager{
+        public Map<String, raceBuilds> races;
+        private static final racesManager manager = new racesManager();
+        public static PacketCodec<RegistryByteBuf,racesManager> PACKET_CODEC = PacketCodec.of(
+            racesManager::write,
+            BuildUtilities::read
+        );
+        private racesManager(){
+            races = new HashMap<>();
+        }
+        private racesManager(Map<String, raceBuilds> raceMap) { races = raceMap;}
+        public static racesManager getInstance(){
+            return manager;
+        }
+        public void write(RegistryByteBuf buf){
+            buf.writeMap(races,(PacketByteBuf::writeString),
+                    ((buf1, value) -> value.write((RegistryByteBuf) buf1)));
+        }
+    }
+    public static racesManager read(RegistryByteBuf buf){
+        return new racesManager(buf.readMap(
+                        (PacketByteBuf::readString),
+                        (buf1 -> raceBuilds.read((RegistryByteBuf) buf1))
+                ));
+    }
+    public static record rawBuildTemplate(String name,String race,int level,int income,int spawnCD,int cost,String displayName){
+        public static PacketCodec<RegistryByteBuf,rawBuildTemplate> PACKET_CODEC = PacketCodec.of(
+                rawBuildTemplate::write,
+                rawBuildTemplate::read
+        );
+        public void write(RegistryByteBuf buf){
+            buf.writeString(name);
+            buf.writeString(race);
+            buf.writeInt(level);
+            buf.writeInt(income);
+            buf.writeInt(spawnCD);
+            buf.writeInt(level);
+            buf.writeString(displayName);
+        }
+        public static rawBuildTemplate read(RegistryByteBuf buf){
+            return new rawBuildTemplate(
+                    buf.readString(),
+                    buf.readString(),
+                    buf.readInt(),
+                    buf.readInt(),
+                    buf.readInt(),
+                    buf.readInt(),
+                    buf.readString()
+            );
+        }
 
+    }
     public static void build(ServerWorld world, BlockWithData block, BlockPos origin) {
         if (world.isClient()) return;
         BlockState state = block.state();

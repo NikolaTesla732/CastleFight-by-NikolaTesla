@@ -1,7 +1,6 @@
 package com.custom.castlefight.custom_castlefight.client.screen;
 
 import com.custom.castlefight.custom_castlefight.Network.PacketsC2S.RequestToGiveC2SPacket;
-import com.custom.castlefight.custom_castlefight.blocks.ConstructionBlock;
 import com.custom.castlefight.custom_castlefight.blocks.ScanBlock;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
@@ -17,7 +16,7 @@ public class ShopScreen extends Screen {
     }
 
     private void onBuyClicked(){
-        ClientPlayNetworking.send(new RequestToGiveC2SPacket(new ItemStack(ScanBlock.ScanBlock)));
+        ClientPlayNetworking.send(new RequestToGiveC2SPacket(new ItemStack(ScanBlock.SCAN_BLOCK)));
         client.player.closeScreen();
     }
     @Override

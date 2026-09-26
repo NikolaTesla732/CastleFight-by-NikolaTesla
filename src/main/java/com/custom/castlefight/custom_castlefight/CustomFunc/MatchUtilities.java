@@ -12,8 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.LOGGER;
-import static com.custom.castlefight.custom_castlefight.Custom_castlefight.TEMPLATES;
+import static com.custom.castlefight.custom_castlefight.Custom_castlefight.*;
 
 public class MatchUtilities {
     public static class Match {
@@ -27,9 +26,12 @@ public class MatchUtilities {
         public static int fullGoldTimer = 200;
         private List<Team> teams = new ArrayList<>();
         private List<UUID> playersInMatch = new ArrayList<>();
-        private Set<String> races;
+        private List<String> races;
         private boolean needUpdateScreen = false;
         private Map<UUID, PlayerData> matchPlayersData;
+        private List<String> raceForBan = new ArrayList<>();
+        private int maxBanRace = 2;
+        private int minRace = 2;
 
         public PlayerData getPlayerData(UUID playerId) {
             return matchPlayersData.get(playerId);
@@ -39,7 +41,7 @@ public class MatchUtilities {
             this.id = id;
             this.matchState = MatchState.START_GAME;
             this.maxPlayerInTeam = maxPlayerInTeam;
-            races = TEMPLATES.getRace();
+            races = new ArrayList<>(TEMPLATES.getRace());
             matchPlayersData = new HashMap<>();
         }
 
@@ -89,7 +91,26 @@ public class MatchUtilities {
             }
             return match;
         }
-
+        public MatchAnswer buyBuild(int gold,int wood,UUID playerId, int income){
+            PlayerData data = this.getPlayerData(playerId);
+            if (data.builds <= 0) return MatchAnswer.LIMITED_BUILDS;
+            MatchAnswer answer = data.buy(gold,wood);
+            if (answer == MatchAnswer.NONE) {
+                data.builds--;
+                data.income += income;
+            }
+            return answer;
+        }
+        protected void updatePlayersData(MinecraftServer server){
+            for (UUID playerId : matchPlayersData.keySet()) {
+                PlayerData data = matchPlayersData.get(playerId);
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+                if (player != null) {
+                    ServerPlayNetworking.send(player, new SendPlayerDataS2CPacket(data));
+                    LOGGER.info("Игроку: " + player.getName().getString() + " обновленны данные");
+                } else LOGGER.info("Неизвестный игрок");
+            }
+        }
         public void addGoldForAll(MinecraftServer server) {
             needUpdateScreen = true;
             for (UUID playerId : matchPlayersData.keySet()) {
@@ -97,7 +118,7 @@ public class MatchUtilities {
                 data.addGold();
                 ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
                 if (player != null) {
-                    ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(data));
+                    ServerPlayNetworking.send(player, new SendPlayerDataS2CPacket(data));
                     ServerPlayNetworking.send(player, new SendGoldTimerS2CPacket(fullGoldTimer));
                     LOGGER.info("Игроку: " + player.getName().getString() + data.income + " общее золото: " + data.gold);
                 } else LOGGER.info("Неизвестный игрок");
@@ -116,20 +137,40 @@ public class MatchUtilities {
             }
             return MatchAnswer.ALREADY_CHOOSE_RACE;
         }
+        public MatchAnswer choiceRace(UUID playerId, String race,MinecraftServer server){
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+            if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
+            if (matchState != MatchState.CHOICE_RACE) return MatchAnswer.INVALID_STAGE;
+            if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
+            PlayerData data = matchPlayersData.get(playerId);
+            if (data.race == null || data.race.isBlank()) {
+                matchPlayersData.get(playerId).race = race;
+                needUpdateScreen = true;
+                ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(this.getPlayerData(playerId)));
+                return MatchAnswer.NONE;
+            }
+            return MatchAnswer.ALREADY_CHOOSE_RACE;
+        }
 
         public MatchAnswer banRace(String race, UUID playerId) {
             if (!matchPlayersData.containsKey(playerId)) return MatchAnswer.INVALID_MATCH;
             if (matchState != MatchState.BAN_RACE) return MatchAnswer.INVALID_STAGE;
             if (!races.contains(race)) return MatchAnswer.INVALID_RACE;
             if (matchPlayersData.get(playerId).canBan) {
-                races.remove(race);
+                if (!raceForBan.contains(race)) raceForBan.add(race);
                 needUpdateScreen = true;
                 matchPlayersData.get(playerId).canBan = false;
                 return MatchAnswer.NONE;
             }
             return MatchAnswer.ALREADY_BAN_RACE;
         }
-        public void nextStage() {
+
+        public void skipStage(int key) {
+            if (key == 1) nextStage();
+            LOGGER.info("Стадия пропущена, текущая стадия: " + matchState);
+        }
+
+        private void nextStage() {
             switch (matchState) {
                 case SETTINGS -> {
                     this.matchState = MatchState.START_GAME;
@@ -137,20 +178,20 @@ public class MatchUtilities {
                 case START_GAME -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_TEAM;
-                    this.matchTime = 300;
-                    this.absoluteMatchTime = 300;
+                    this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                 }
                 case CHOICE_TEAM -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.BAN_RACE;
-                    this.matchTime = 300;
-                    this.absoluteMatchTime = 300;
+                    this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                 }
                 case BAN_RACE -> {
                     needUpdateScreen = true;
                     this.matchState = MatchState.CHOICE_RACE;
-                    this.matchTime = 300;
-                    this.absoluteMatchTime = 300;
+                    this.matchTime = 900;
+                    this.absoluteMatchTime = 900;
                 }
                 case CHOICE_RACE -> {
                     needUpdateScreen = true;
@@ -183,10 +224,9 @@ public class MatchUtilities {
                     if (hasPlayerInTeam(player)) removePlayerFromTeam(player);
                     if (team.countPlayers() >= this.maxPlayerInTeam) return MatchAnswer.FULL_TEAM;
                     team.addPlayer(player);
-                    playersInMatch.remove(player);
+                    if (playersInMatch.contains(player)) playersInMatch.remove(player);
                     matchPlayersData.get(player).team = team.teamColor;
-                    if (matchPlayersData.containsKey(player)) matchPlayersData.get(player).team = team.teamColor;
-                    LOGGER.info(String.valueOf(matchPlayersData.containsKey(player)));
+                    needUpdateScreen = true;
                     return MatchAnswer.NONE;
                 }
             }
@@ -265,8 +305,10 @@ public class MatchUtilities {
         }
 
         public List<UUID> getAllPlayer() {
-            List<UUID> players = getAllPlayersInTeam();
-            players.addAll(playersInMatch);
+            List<UUID> players = new ArrayList<>();
+            for (PlayerData data : matchPlayersData.values()) {
+                players.add(data.playerId);
+            }
             return players;
         }
 
@@ -287,11 +329,11 @@ public class MatchUtilities {
         }
 
         public Set<String> getRaces() {
-            return races;
+            return new HashSet<>(races);
         }
 
         public void setRaces(Set<String> races) {
-            this.races = races;
+            this.races = new ArrayList<>(races);
         }
 
         public int getMatchTime() {
@@ -326,6 +368,14 @@ public class MatchUtilities {
             this.teams = teams;
         }
 
+        public Map<MatchUtilities.TeamColor, List<String>> getTeamsMap(MinecraftServer server) {
+            Map<MatchUtilities.TeamColor, List<String>> teamMap = new HashMap<>();
+            for (MatchUtilities.Team team : teams) {
+                teamMap.put(team.getColor(), team.getPlayersName(server));
+            }
+            return teamMap;
+        }
+
         private void updateDataForAll(MinecraftServer server) {
             PlayerManager playerManager = server.getPlayerManager();
             for (UUID playerId : getAllPlayer()) {
@@ -336,6 +386,11 @@ public class MatchUtilities {
                 ServerPlayNetworking.send(player, new SendTimerS2CPacket(absoluteMatchTime, true));
                 if (playerId == matchPlayersData.get(playerId).getPlayerId())
                     ServerPlayNetworking.send(player, new SendPlayerDataS2CPacket(matchPlayersData.get(playerId)));
+                switch (matchState) {
+                    case CHOICE_TEAM -> ServerPlayNetworking.send(player, new SendTeamsS2CPacket(getTeamsMap(server)));
+                    case BAN_RACE, CHOICE_RACE ->
+                            ServerPlayNetworking.send(player, new SendRacesSetS2CPacket(new HashSet<>(races)));
+                }
 
             }
         }
@@ -362,9 +417,26 @@ public class MatchUtilities {
                         nextStage();
                     }
                 }
-                case MatchState.BAN_RACE, MatchState.CHOICE_RACE -> {
+                case MatchState.BAN_RACE -> {
                     matchTime--;
                     if (matchTime <= 0) {
+                        for (int i = 0; i < maxBanRace; i++) {
+                            if (raceForBan.isEmpty() || raceForBan.size() <= minRace) break;
+                            int n = RANDOM.nextInt(raceForBan.size());
+                            races.remove(raceForBan.get(n));
+                            raceForBan.remove(n);
+                        }
+                        nextStage();
+                    }
+                }
+                case CHOICE_RACE -> {
+                    matchTime--;
+                    if (matchTime <= 0) {
+                        for (UUID playerId : matchPlayersData.keySet()) {
+                            if (matchPlayersData.get(playerId).race == null && !races.isEmpty()) {
+                                matchPlayersData.get(playerId).race = races.get(RANDOM.nextInt(races.size()));
+                            }
+                        }
                         nextStage();
                     }
                 }
@@ -395,7 +467,8 @@ public class MatchUtilities {
         public boolean canBan = true;
         public TeamColor team;
         public String race;
-        public int gold, income = 10, wood;
+        public int gold = 200, income = 10, wood = 0;
+        public int builds = 10;
         public static final PacketCodec<RegistryByteBuf, PlayerData> PACKET_CODEC = PacketCodec.of(
                 PlayerData::write,
                 PlayerData::read
@@ -412,6 +485,12 @@ public class MatchUtilities {
         public MatchAnswer buy(int gold, int wood) {
             MatchAnswer goldAnswer = spendGold(gold);
             MatchAnswer woodAnswer = spendWood(wood);
+            if (goldAnswer == MatchAnswer.NONE && woodAnswer == MatchAnswer.NOT_ENOUGH_WOOD){
+                this.gold += gold;
+            }
+            else if (woodAnswer == MatchAnswer.NONE && goldAnswer == MatchAnswer.NOT_ENOUGH_GOLD){
+                this.wood += wood;
+            }
             if (goldAnswer == MatchAnswer.NONE) return woodAnswer;
             return goldAnswer;
         }
@@ -477,7 +556,8 @@ public class MatchUtilities {
         ALREADY_CHOOSE_RACE,
         INVALID_MATCH,
         NOT_ENOUGH_GOLD,
-        NOT_ENOUGH_WOOD
+        NOT_ENOUGH_WOOD,
+        LIMITED_BUILDS
     }
 
     public static class MatchManager {
@@ -647,7 +727,8 @@ public class MatchUtilities {
         FULL_TIMER,
         PLAYER_DATA,
         GOLD_TIMER,
-        PLAYER_IN_MATCH
+        PLAYER_IN_MATCH,
+        RACE_MANAGER
     }
 
     public enum MatchState {
@@ -735,6 +816,7 @@ public class MatchUtilities {
 
     public enum ActionAdmin {
         ADD_MATCH,
+        RUN_MATCH,
         NEXT_STAGE
     }
 
@@ -791,8 +873,11 @@ public class MatchUtilities {
                 case ADD_MATCH -> {
                     return match != null;
                 }
-                case NEXT_STAGE -> {
+                case RUN_MATCH -> {
                     return matchFormat != null;
+                }
+                case NEXT_STAGE -> {
+                    return true;
                 }
             }
             return false;

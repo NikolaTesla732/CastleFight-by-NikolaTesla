@@ -68,13 +68,7 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
                         return;
                     }
                     MatchUtilities.MatchAnswer answer = match.addPlayerToTeam(playerId, payload.matchAction.getTeam());
-                    if (answer == MatchUtilities.MatchAnswer.NONE) {
-                        Map<MatchUtilities.TeamColor, List<String>> teamMap = new HashMap<>();
-                        for (MatchUtilities.Team team : match.getTeams()) {
-                            teamMap.put(team.getColor(), team.getPlayersName(context.server()));
-                        }
-                        ServerPlayNetworking.send(player, new SendTeamsS2CPacket(teamMap));
-                    } else ServerPlayNetworking.send(player, new SendMatchAnswerS2CPacket(answer));
+                    if (answer != MatchUtilities.MatchAnswer.NONE) ServerPlayNetworking.send(player, new SendMatchAnswerS2CPacket(answer));
 
                 }
                 case OPEN_MAIN -> {
@@ -105,15 +99,14 @@ public record RequestToDoClientMatchActionC2SPacket(MatchUtilities.MatchAction m
                 }
                 case CHOOSE_RACE -> {
                     MatchUtilities.MatchAnswer answer = match.choiceRace(playerId,payload.matchAction().getRace());
+                    ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(match.getPlayerData(playerId)));
                     if (answer == MatchUtilities.MatchAnswer.NONE){
                         ServerPlayNetworking.send(player, new SendRacesSetS2CPacket(match.getRaces()));
-                        ServerPlayNetworking.send(player,new SendPlayerDataS2CPacket(match.getPlayerData(playerId)));
                     } else ServerPlayNetworking.send(player, new SendMatchAnswerS2CPacket(answer));
                 }
                 case GET_PLAYER_DATA -> {
                     if (playerId == match.getPlayerData(playerId).getPlayerId()){
                         MatchUtilities.PlayerData data = match.getPlayerData(playerId);
-
                     }
                 }
             }
